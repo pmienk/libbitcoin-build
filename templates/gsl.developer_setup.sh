@@ -8,7 +8,7 @@
 # language. See https://github.com/imatix/gsl for details.
 ###############################################################################
 # Functions
-###############################################################################  
+###############################################################################
 
 # General repository query functions.
 
@@ -317,13 +317,13 @@ set -e
 SEQUENTIAL=1
 OS=`uname -s`
 if [[ $PARALLEL ]]; then
-    echo "Using shell-defined PARALLEL value."
+    display_message "Using shell-defined PARALLEL value."
 elif [[ $OS == Linux ]]; then
     PARALLEL=`nproc`
 elif [[ ($OS == Darwin) || ($OS == OpenBSD) ]]; then
     PARALLEL=`sysctl -n hw.ncpu`
 else
-    echo "Unsupported system: $OS"
+    display_error "Unsupported system: $OS"
     exit 1
 fi
 
@@ -382,20 +382,20 @@ fi
 
 .   heading2("Normalize --build-mode value.")
 if [[ ($BUILD_MODE != "rebase") && ($BUILD_MODE != "reconfigure") && ($BUILD_MODE != "rebuild") && ($BUILD_MODE != "reuse") ]]; then
-    echo "Unsupported build-mode: $BUILD_MODE"
-    echo "Supported values are: rebase, reconfigure, rebuild, reuse"
+    display_error "Unsupported build-mode: $BUILD_MODE"
+    display_error "Supported values are: rebase, reconfigure, rebuild, reuse"
     exit 1
 fi
 
 .   heading2("Require source directory declaration.")
 if [[ !($BUILD_SRC_DIR) ]]; then
-    echo "Missing build-src-dir required."
+    display_error "Missing build-src-dir required."
     exit 1
 fi
 
 .   heading2("Require object directory declaration.")
 if [[ !($BUILD_OBJ_DIR) ]]; then
-    echo "Missing build-obj-dir required."
+    display_error "Missing build-obj-dir required."
     exit 1
 fi
 
@@ -406,7 +406,7 @@ CONFIGURE_OPTIONS=("${CONFIGURE_OPTIONS[@]/--build-*/}")
 if [[ !($PREFIX) ]]; then
 #    PREFIX="/usr/local"
 #    CONFIGURE_OPTIONS=( "${CONFIGURE_OPTIONS[@]}" "--prefix=$PREFIX")
-    echo "Missing prefix required."
+    display_error "Missing prefix required."
     exit 1
 else
     # Incorporate the custom libdir into each object, for runtime resolution.
@@ -434,34 +434,34 @@ if [[ $BUILD_BOOST ]]; then
 fi
 
 .   heading2("Echo generated values.")
-echo "Libbitcoin installer configuration."
-echo "--------------------------------------------------------------------"
-echo "OS                    : $OS"
-echo "PARALLEL              : $PARALLEL"
-echo "CC                    : $CC"
-echo "CXX                   : $CXX"
-echo "CPPFLAGS              : $CPPFLAGS"
-echo "CFLAGS                : $CFLAGS"
-echo "CXXFLAGS              : $CXXFLAGS"
-echo "LDFLAGS               : $LDFLAGS"
-echo "LDLIBS                : $LDLIBS"
-echo "WITH_ICU              : $WITH_ICU"
-echo "WITH_PNG              : $WITH_PNG"
-echo "WITH_QRENCODE         : $WITH_QRENCODE"
-echo "BUILD_ICU             : $BUILD_ICU"
-echo "BUILD_ZLIB            : $BUILD_ZLIB"
-echo "BUILD_PNG             : $BUILD_PNG"
-echo "BUILD_QRENCODE        : $BUILD_QRENCODE"
-echo "BUILD_BOOST           : $BUILD_BOOST"
-echo "PREFIX                : $PREFIX"
-echo "BUILD_SRC_DIR         : $BUILD_SRC_DIR"
-echo "BUILD_OBJ_DIR         : $BUILD_OBJ_DIR"
-echo "BUILD_MODE            : $BUILD_MODE"
-echo "DISABLE_SHARED        : $DISABLE_SHARED"
-echo "DISABLE_STATIC        : $DISABLE_STATIC"
-echo "with_boost            : ${with_boost}"
-echo "with_pkgconfigdir     : ${with_pkgconfigdir}"
-echo "--------------------------------------------------------------------"
+display_message "Libbitcoin installer configuration."
+display_message "--------------------------------------------------------------------"
+display_message "OS                    : $OS"
+display_message "PARALLEL              : $PARALLEL"
+display_message "CC                    : $CC"
+display_message "CXX                   : $CXX"
+display_message "CPPFLAGS              : $CPPFLAGS"
+display_message "CFLAGS                : $CFLAGS"
+display_message "CXXFLAGS              : $CXXFLAGS"
+display_message "LDFLAGS               : $LDFLAGS"
+display_message "LDLIBS                : $LDLIBS"
+display_message "WITH_ICU              : $WITH_ICU"
+display_message "WITH_PNG              : $WITH_PNG"
+display_message "WITH_QRENCODE         : $WITH_QRENCODE"
+display_message "BUILD_ICU             : $BUILD_ICU"
+display_message "BUILD_ZLIB            : $BUILD_ZLIB"
+display_message "BUILD_PNG             : $BUILD_PNG"
+display_message "BUILD_QRENCODE        : $BUILD_QRENCODE"
+display_message "BUILD_BOOST           : $BUILD_BOOST"
+display_message "PREFIX                : $PREFIX"
+display_message "BUILD_SRC_DIR         : $BUILD_SRC_DIR"
+display_message "BUILD_OBJ_DIR         : $BUILD_OBJ_DIR"
+display_message "BUILD_MODE            : $BUILD_MODE"
+display_message "DISABLE_SHARED        : $DISABLE_SHARED"
+display_message "DISABLE_STATIC        : $DISABLE_STATIC"
+display_message "with_boost            : ${with_boost}"
+display_message "with_pkgconfigdir     : ${with_pkgconfigdir}"
+display_message "--------------------------------------------------------------------"
 
 .endmacro # setup__define_initialize
 .
@@ -490,10 +490,10 @@ configure_options()
     local PROJ_CONFIG_DIR=$1
     shift
 
-    echo "configure options:"
+    display_message "configure options:"
     for OPTION in "$@"; do
         if [[ $OPTION ]]; then
-            echo $OPTION
+            display_message $OPTION
         fi
     done
 
@@ -506,14 +506,14 @@ create_directory()
 
     if [[ -d "$DIRECTORY" ]]; then
         if [[ $BUILD_MODE == "rebase" ]]; then
-            display_message "Reinitializing directory $DIRECTORY"
+            display_heading "Reinitializing directory $DIRECTORY"
             rm -rf "$DIRECTORY"
             mkdir "$DIRECTORY"
         else
-            display_message "Reusing directory $DIRECTORY"
+            display_heading "Reusing directory $DIRECTORY"
         fi
     else
-        display_message "Initializing directory $DIRECTORY"
+        display_heading "Initializing directory $DIRECTORY"
         mkdir "$DIRECTORY"
     fi
 }
@@ -534,13 +534,25 @@ pop_obj_directory()
     pop_directory
 }
 
-display_message()
+display_heading()
 {
     local MESSAGE="$1"
 
     echo
     echo "********************** $MESSAGE **********************"
     echo
+}
+
+display_message()
+{
+    local MESSAGE="$1"
+    echo "$MESSAGE"
+}
+
+display_error()
+{
+    local MESSAGE="$1"
+    >&2 echo "$MESSAGE"
 }
 
 initialize_git()
@@ -662,7 +674,7 @@ unpack_from_tarball()
     local BUILD=$4
 
     if [[ !($BUILD) ]]; then
-        display_message "Skipping unpack of $ARCHIVE"
+        display_heading "Skipping unpack of $ARCHIVE"
         return
     fi
 
@@ -670,14 +682,14 @@ unpack_from_tarball()
 
     if [[ -d "$TARGET_DIR" ]]; then
         if [[ $BUILD_MODE == "rebase" ]]; then
-            display_message "Re-downloading $ARCHIVE"
+            display_heading "Re-downloading $ARCHIVE"
             rm -rf "$TARGET_DIR"
             extract_from_tarball "$TARGET_DIR" "$URL" "$ARCHIVE" "$COMPRESSION"
         else
-            display_message "Reusing existing archive $ARCHIVE"
+            display_heading "Reusing existing archive $ARCHIVE"
         fi
     else
-        display_message "Downloading $ARCHIVE"
+        display_heading "Downloading $ARCHIVE"
         extract_from_tarball "$TARGET_DIR" "$URL" "$ARCHIVE" "$COMPRESSION"
     fi
 }
@@ -703,14 +715,14 @@ create_from_github()
 
     if [[ -d "$REPO" ]]; then
         if [[ $BUILD_MODE == "rebase" ]]; then
-            display_message "Re-cloning $FORK/$BRANCH"
+            display_heading "Re-cloning $FORK/$BRANCH"
             rm -rf "$REPO"
             clone_from_github "$FORK" "$BRANCH"
         else
-            display_message "Reusing existing clone of $FORK, Branch may not match $BRANCH"
+            display_heading "Reusing existing clone of $FORK, Branch may not match $BRANCH"
         fi
     else
-        display_message "Cloning $FORK/$BRANCH"
+        display_heading "Cloning $FORK/$BRANCH"
         clone_from_github "$FORK" "$BRANCH"
     fi
 
@@ -744,7 +756,7 @@ patch_zlib_configuration()
     sed -i.tmp "/unknown option/d" configure
     sed -i.tmp "/help for help/d" configure
 
-    # echo "Hack: ZLIB configuration options modified."
+    # display_message "Hack: ZLIB configuration options modified."
 }
 
 # Because ZLIB can't build shared only.
@@ -830,10 +842,10 @@ circumvent_boost_icu_detection()
     local REGEX_TEST="libs/regex/build/has_icu_test.cpp"
     local LOCALE_TEST="libs/locale/build/has_icu_test.cpp"
 
-    echo $SUCCESS > $REGEX_TEST
-    echo $SUCCESS > $LOCALE_TEST
+    display_message $SUCCESS > $REGEX_TEST
+    display_message $SUCCESS > $LOCALE_TEST
 
-    # echo "Hack: ICU detection modified, will always indicate found."
+    # display_message "Hack: ICU detection modified, will always indicate found."
 }
 
 # Because boost doesn't support autoconfig and doesn't like empty settings.
@@ -902,28 +914,28 @@ build_from_tarball_boost()
     initialize_boost_configuration
     initialize_boost_icu_configuration
 
-    echo "Libbitcoin boost configuration."
-    echo "--------------------------------------------------------------------"
-    echo "variant               : release"
-    echo "threading             : multi"
-    echo "toolset               : $CC"
-    echo "cxxflags              : $STDLIB_FLAG"
-    echo "linkflags             : $STDLIB_FLAG"
-    echo "link                  : $BOOST_LINK"
-    echo "boost.locale.iconv    : $BOOST_ICU_ICONV"
-    echo "boost.locale.posix    : $BOOST_ICU_POSIX"
-    echo "-sNO_BZIP2            : 1" 
-    echo "-sICU_PATH            : $ICU_PREFIX"
-    echo "-sICU_LINK            : ${ICU_LIBS[@]}"
-    echo "-sZLIB_LIBPATH        : $PREFIX/lib"
-    echo "-sZLIB_INCLUDE        : $PREFIX/include"
-    echo "-j                    : $JOBS"
-    echo "-d0                   : [supress informational messages]"
-    echo "-q                    : [stop at the first error]"
-    echo "--reconfigure         : [ignore cached configuration]"
-    echo "--prefix              : $PREFIX"
-    echo "BOOST_OPTIONS         : $@"
-    echo "--------------------------------------------------------------------"
+    display_message "Libbitcoin boost configuration."
+    display_message "--------------------------------------------------------------------"
+    display_message "variant               : release"
+    display_message "threading             : multi"
+    display_message "toolset               : $CC"
+    display_message "cxxflags              : $STDLIB_FLAG"
+    display_message "linkflags             : $STDLIB_FLAG"
+    display_message "link                  : $BOOST_LINK"
+    display_message "boost.locale.iconv    : $BOOST_ICU_ICONV"
+    display_message "boost.locale.posix    : $BOOST_ICU_POSIX"
+    display_message "-sNO_BZIP2            : 1"
+    display_message "-sICU_PATH            : $ICU_PREFIX"
+    display_message "-sICU_LINK            : ${ICU_LIBS[@]}"
+    display_message "-sZLIB_LIBPATH        : $PREFIX/lib"
+    display_message "-sZLIB_INCLUDE        : $PREFIX/include"
+    display_message "-j                    : $JOBS"
+    display_message "-d0                   : [supress informational messages]"
+    display_message "-q                    : [stop at the first error]"
+    display_message "--reconfigure         : [ignore cached configuration]"
+    display_message "--prefix              : $PREFIX"
+    display_message "BOOST_OPTIONS         : $@"
+    display_message "--------------------------------------------------------------------"
 
     # boost_iostreams
     # The zlib options prevent boost linkage to system libs in the case where
@@ -1073,7 +1085,7 @@ create_local_copies()
 .           endif
 .
 .       endif
-.   endfor _build    
+.   endfor _build
 }
 
 .endmacro # setup__define_create_local_copies
@@ -1108,7 +1120,7 @@ build_local_copies()
 .           endif
 .
 .       endif
-.   endfor _build    
+.   endfor _build
 }
 
 .endmacro # setup__define_build_local_copies
@@ -1134,12 +1146,12 @@ for generate.repository by name as _repository
     define my.out_file = "$(_repository.name)/developer_setup.sh"
     notify(my.out_file)
     output(my.out_file)
-    
+
     shebang("bash")
     define my.install = _repository->install
     copyleft(_repository.name)
     setup__documentation(_repository)
-    
+
     heading1("Define constants.")
     setup__define_build_directory(_repository)
     setup__define_icu(my.install)
@@ -1147,21 +1159,21 @@ for generate.repository by name as _repository
     setup__define_png(my.install)
     setup__define_qrencode(my.install)
     setup__define_boost(my.install)
-    
+
+    heading1("Define utility functions.")
+    setup__define_utility_functions()
+
     heading1("Initialize the build environment.")
     setup__define_initialize()
-    
+
     heading1("Define build options.")
     for my.install.build as _build where count(_build.option) > 0
          setup__define_build_options(_build)
     endfor _build
 
-    heading1("Define utility functions.")
-    setup__define_utility_functions()
-    
     heading1("Define build functions.")
     setup__define_build_functions()
-    
+
     heading1("The master download/clone/sync function.")
     setup__define_create_local_copies(my.install)
 
@@ -1170,7 +1182,7 @@ for generate.repository by name as _repository
 
     heading1("Build the primary library and all dependencies.")
     setup__define_invoke()
-    
+
     close
 endfor _repository
 endfunction # setup__generate
