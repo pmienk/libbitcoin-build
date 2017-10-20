@@ -585,7 +585,16 @@ make_project_directory()
     push_directory "$PROJ_NAME"
     local PROJ_CONFIG_DIR=\$(pwd)
 
-    ./autogen.sh
+    if [[ -f "$PROJ_NAME/configure" ]]; then
+        if [[ BUILD_MODE != "reuse" ]]; then
+            # reconfigure using autoreconf
+            autoreconf -i
+        fi
+    else
+        # boostrap configuration
+        ./autogen.sh
+    fi
+
     push_obj_directory "$PROJ_NAME"
     configure_options "$PROJ_CONFIG_DIR" "$@"
     make_jobs $JOBS
