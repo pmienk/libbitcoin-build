@@ -497,7 +497,17 @@ configure_options()
         fi
     done
 
-    $PROJ_CONFIG_DIR/configure "$@"
+    if [[ -f "Makefile" ]]; then
+        if [[ $BUILD_MODE == "reconfigure" ]]; then
+            display_message "Reconfiguring $PROJ_CONFIG_DIR..."
+            $PROJ_CONFIG_DIR/configure "$@"
+        else
+            display_message "Reusing configuration for $PROJ_CONFIG_DIR..."
+        fi
+    else
+        display_message "Configuring $PROJ_CONFIG_DIR..."
+        $PROJ_CONFIG_DIR/configure "$@"
+    fi
 }
 
 create_directory()
@@ -506,14 +516,14 @@ create_directory()
 
     if [[ -d "$DIRECTORY" ]]; then
         if [[ $BUILD_MODE == "rebase" ]]; then
-            display_heading "Reinitializing directory $DIRECTORY"
+            display_message "Reinitializing directory $DIRECTORY..."
             rm -rf "$DIRECTORY"
             mkdir "$DIRECTORY"
         else
-            display_heading "Reusing directory $DIRECTORY"
+            display_message "Reusing directory $DIRECTORY..."
         fi
     else
-        display_heading "Initializing directory $DIRECTORY"
+        display_message "Initializing directory $DIRECTORY..."
         mkdir "$DIRECTORY"
     fi
 }
@@ -534,7 +544,7 @@ pop_obj_directory()
     pop_directory
 }
 
-display_heading()
+display_heading_message()
 {
     local MESSAGE="$1"
 
@@ -557,6 +567,8 @@ display_error()
 
 initialize_git()
 {
+    display_heading_message "Initialize git"
+
     # Initialize git repository at the root of the current directory.
     git init
     git config user.name anonymous
@@ -595,6 +607,7 @@ make_jobs()
     shift 1
 
     if [[ BUILD_MODE == "rebuild" ]]; then
+        display_message "BUILD_MODE=rebuild triggered 'make clean'..."
         make clean
     fi
 
@@ -673,8 +686,10 @@ unpack_from_tarball()
     local COMPRESSION=$3
     local BUILD=$4
 
+    display_heading_message "Prepairing to aquire $ARCHIVE"
+
     if [[ !($BUILD) ]]; then
-        display_heading "Skipping unpack of $ARCHIVE"
+        display_message "Skipping unpack of $ARCHIVE..."
         return
     fi
 
@@ -682,14 +697,14 @@ unpack_from_tarball()
 
     if [[ -d "$TARGET_DIR" ]]; then
         if [[ $BUILD_MODE == "rebase" ]]; then
-            display_heading "Re-downloading $ARCHIVE"
+            display_message "Re-downloading $ARCHIVE..."
             rm -rf "$TARGET_DIR"
             extract_from_tarball "$TARGET_DIR" "$URL" "$ARCHIVE" "$COMPRESSION"
         else
-            display_heading "Reusing existing archive $ARCHIVE"
+            display_message "Reusing existing archive $ARCHIVE..."
         fi
     else
-        display_heading "Downloading $ARCHIVE"
+        display_message "Downloading $ARCHIVE..."
         extract_from_tarball "$TARGET_DIR" "$URL" "$ARCHIVE" "$COMPRESSION"
     fi
 }
@@ -713,16 +728,18 @@ create_from_github()
 
     FORK="$ACCOUNT/$REPO"
 
+    display_heading_message "Prepairing to aquire $FORK/$BRANCH"
+
     if [[ -d "$REPO" ]]; then
         if [[ $BUILD_MODE == "rebase" ]]; then
-            display_heading "Re-cloning $FORK/$BRANCH"
+            display_message "Re-cloning $FORK/$BRANCH..."
             rm -rf "$REPO"
             clone_from_github "$FORK" "$BRANCH"
         else
-            display_heading "Reusing existing clone of $FORK, Branch may not match $BRANCH"
+            display_message "Reusing existing clone of $FORK, Branch may not match $BRANCH..."
         fi
     else
-        display_heading "Cloning $FORK/$BRANCH"
+        display_message "Cloning $FORK/$BRANCH..."
         clone_from_github "$FORK" "$BRANCH"
     fi
 
@@ -778,12 +795,16 @@ build_from_tarball()
     shift 5
 
     # For some platforms we need to set ICU pkg-config path.
+    # TODO: clean this up?
     if [[ !($BUILD) ]]; then
         if [[ $ARCHIVE == $ICU_ARCHIVE ]]; then
+            display_heading_message "Prepairing to build $ARCHIVE"
             initialize_icu_packages
         fi
         return
     fi
+
+    display_heading_message "Prepairing to build $ARCHIVE"
 
     # Because libpng doesn't actually use pkg-config to locate zlib.
     # Because ICU tools don't know how to locate internal dependencies.
@@ -907,6 +928,8 @@ build_from_tarball_boost()
         return
     fi
 
+    display_heading_message "Prepairing to build $ARCHIVE"
+
     local TARGET="build-$ARCHIVE"
 
     push_directory "$TARGET"
@@ -983,16 +1006,25 @@ build_from_github()
     # Join generated and command line options.
     local CONFIGURATION=("${OPTIONS[@]}" "$@")
 
+	display_heading_message "Prepairing to build $REPO"
+
     # Build the local repository clone.
     make_project_directory "$REPO" $JOBS $TEST "${CONFIGURATION[@]}"
 }
 
 initialize_object_directory()
 {
-    if [[ ($BUILD_MODE == "rebase") || ($BUILD_MODE == "reconfigure") ]]; then
-        if [[ -d "$BUILD_OBJ_DIR" ]]; then
+    display_heading_message "Initialize object directory"
+
+    if [[ -d "$BUILD_OBJ_DIR" ]]; then
+        if [[ ($BUILD_MODE == "rebase") || ($BUILD_MODE == "reconfigure") ]]; then
+            display_message "Reinitializing $BUILD_OBJ_DIR..."
             rm -rf "$BUILD_OBJ_DIR"
+        else
+            display_message "Skipping reinitialization of $BUILD_OBJ_DIR..."
         fi
+    else
+        display_message "Initializing $BUILD_OBJ_DIR..."
     fi
 
     create_directory "$BUILD_OBJ_DIR"
@@ -1063,6 +1095,7 @@ initialize_object_directory()
 .   define my.install = setup__define_create_local_copies.install
 create_local_copies()
 {
+    display_heading_message "Create local copies of required libraries"
 .   for my.install.build as _build
 .       # Unique by build.name
 .       if !defined(my.build_$(_build.name:c))
@@ -1094,6 +1127,7 @@ create_local_copies()
 .   define my.install = setup__define_build_local_copies.install
 build_local_copies()
 {
+    display_heading_message "Build local copies of required libraries"
 .   for my.install.build as _build
 .       # Unique by build.name
 .       if !defined(my.build_$(_build.name:c))
