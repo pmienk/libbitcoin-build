@@ -12,179 +12,179 @@
 
 # General repository query functions.
 
-function setup__have_build(install, name)
-    define my.install = setup__have_build.install
+function have_build(install, name)
+    define my.install = have_build.install
     return defined(my.install->build(starts_with(build.name, my.name)))
 endfunction
 
-function setup__is_archive_match(build, name)
-    define my.build = setup__is_archive_match.build
+function is_archive_match(build, name)
+    define my.build = is_archive_match.build
     trace1("is_archive_match($(my.name)) : $(my.build.name)")
     return defined(my.build.version) & (my.build.name = my.name)
 endfunction
 
-function setup__get_archive_version(install, name)
-    trace1("setup__get_archive_version($(my.name))")
-    define my.install = setup__get_archive_version.install
-    define my.build = my.install->build(setup__is_archive_match(build, my.name))?
+function get_archive_version(install, name)
+    trace1("get_archive_version($(my.name))")
+    define my.install = get_archive_version.install
+    define my.build = my.install->build(is_archive_match(build, my.name))?
     return defined(my.build) ?? my.build.version
 endfunction
 
 # Functions with specific knowledge of ICU archive file name and URL structure.
 
-function setup__get_icu_file(install)
-    define my.install = setup__get_icu_file.install
-    define my.version = setup__get_archive_version(my.install, "icu")?
+function get_icu_file(install)
+    define my.install = get_icu_file.install
+    define my.version = get_archive_version(my.install, "icu")?
     if (!defined(my.version))
-        trace1("setup__get_icu_file:setup__get_archive_version() = []")
+        trace1("get_icu_file:get_archive_version() = []")
         return
     endif
     define my.underscore_version = string.convch(my.version, ".", "_")
     return "icu4c-$(my.underscore_version)-src.tgz"
 endfunction
 
-function setup__get_icu_url(install)
-    trace1("setup__get_icu_url()")
-    define my.install = setup__get_icu_url.install
-    define my.version = setup__get_archive_version(my.install, "icu")?
+function get_icu_url(install)
+    trace1("get_icu_url()")
+    define my.install = get_icu_url.install
+    define my.version = get_archive_version(my.install, "icu")?
     if (!defined(my.version))
-        trace1("setup__get_icu_url:setup__get_archive_version() = []")
+        trace1("get_icu_url:get_archive_version() = []")
         return
     endif
-    define my.archive = setup__get_icu_file(my.install)?
+    define my.archive = get_icu_file(my.install)?
     if (!defined(my.archive))
-        trace1("setup__get_icu_url:setup__get_icu_file() = []")
+        trace1("get_icu_url:get_icu_file() = []")
         return
     endif
     define my.base_url = "http\://download.icu-project.org/files/icu4c"
     define my.url = "$(my.base_url)/$(my.version)/$(my.archive)"
-    trace1("setup__get_icu_url = $(my.url)")
+    trace1("get_icu_url = $(my.url)")
     return my.url
 endfunction
 
 # Functions with specific knowledge of ZLib archive file name and URL structure.
 
-function setup__get_zlib_file(install)
-    define my.install = setup__get_zlib_file.install
-    define my.version = setup__get_archive_version(my.install, "zlib")?
+function get_zlib_file(install)
+    define my.install = get_zlib_file.install
+    define my.version = get_archive_version(my.install, "zlib")?
     if (!defined(my.version))
-        trace1("setup__get_zlib_file:setup__get_archive_version() = []")
+        trace1("get_zlib_file:get_archive_version() = []")
         return
     endif
     return "v$(my.version).tar.gz"
 endfunction
 
-function setup__get_zlib_url(install)
-    trace1("setup__get_zlib_url()")
-    define my.install = setup__get_zlib_url.install
-    define my.version = setup__get_archive_version(my.install, "zlib")?
+function get_zlib_url(install)
+    trace1("get_zlib_url()")
+    define my.install = get_zlib_url.install
+    define my.version = get_archive_version(my.install, "zlib")?
     if (!defined(my.version))
-        trace1("setup__get_zlib_url:setup__get_archive_version() = []")
+        trace1("get_zlib_url:get_archive_version() = []")
         return
     endif
-    define my.archive = setup__get_zlib_file(my.install)?
+    define my.archive = get_zlib_file(my.install)?
     if (!defined(my.archive))
-        trace1("setup__get_zlib_url:setup__get_zlib_file() = []")
+        trace1("get_zlib_url:get_zlib_file() = []")
         return
     endif
     define my.base_url = "https\://github.com/madler/zlib/archive"
     define my.url = "$(my.base_url)/$(my.archive)"
-    trace1("setup__get_zlib_url = $(my.url)")
+    trace1("get_zlib_url = $(my.url)")
     return my.url
 endfunction
 
 # Functions with specific knowledge of PNG archive file name and URL structure.
 
-function setup__get_png_file(install)
-    define my.install = setup__get_png_file.install
-    define my.version = setup__get_archive_version(my.install, "png")?
+function get_png_file(install)
+    define my.install = get_png_file.install
+    define my.version = get_archive_version(my.install, "png")?
     if (!defined(my.version))
-        trace1("setup__get_png_file:setup__get_archive_version() = []")
+        trace1("get_png_file:get_archive_version() = []")
         return
     endif
     return "libpng-$(my.version).tar.xz"
 endfunction
 
-function setup__get_png_url(install)
-    trace1("setup__get_png_url()")
-    define my.install = setup__get_png_url.install
-    define my.version = setup__get_archive_version(my.install, "png")?
+function get_png_url(install)
+    trace1("get_png_url()")
+    define my.install = get_png_url.install
+    define my.version = get_archive_version(my.install, "png")?
     if (!defined(my.version))
-        trace1("setup__get_png_url:setup__get_archive_version() = []")
+        trace1("get_png_url:get_archive_version() = []")
         return
     endif
-    define my.archive = setup__get_png_file(my.install)?
+    define my.archive = get_png_file(my.install)?
     if (!defined(my.archive))
-        trace1("setup__get_png_url:setup__get_png_file() = []")
+        trace1("get_png_url:get_png_file() = []")
         return
     endif
     define my.base_url = "http://downloads.sourceforge.net/project/libpng/libpng16"
     define my.url = "$(my.base_url)/$(my.version)/$(my.archive)"
-    trace1("setup__get_png_url = $(my.url)")
+    trace1("get_png_url = $(my.url)")
     return my.url
 endfunction
 
 # Functions with specific knowledge of QREncode archive file name and URL structure.
 
-function setup__get_qrencode_file(install)
-    define my.install = setup__get_qrencode_file.install
-    define my.version = setup__get_archive_version(my.install, "qrencode")?
+function get_qrencode_file(install)
+    define my.install = get_qrencode_file.install
+    define my.version = get_archive_version(my.install, "qrencode")?
     if (!defined(my.version))
-        trace1("setup__get_qrencode_file:setup__get_archive_version() = []")
+        trace1("get_qrencode_file:get_archive_version() = []")
         return
     endif
     define my.underscore_version = string.convch(my.version, ".", "_")
     return "qrencode-$(my.version).tar.bz2"
 endfunction
 
-function setup__get_qrencode_url(install)
-    trace1("setup__get_qrencode_url()")
-    define my.install = setup__get_qrencode_url.install
-    define my.version = setup__get_archive_version(my.install, "qrencode")?
+function get_qrencode_url(install)
+    trace1("get_qrencode_url()")
+    define my.install = get_qrencode_url.install
+    define my.version = get_archive_version(my.install, "qrencode")?
     if (!defined(my.version))
-        trace1("setup__get_qrencode_url:setup__get_archive_version() = []")
+        trace1("get_qrencode_url:get_archive_version() = []")
         return
     endif
-    define my.archive = setup__get_qrencode_file(my.install)?
+    define my.archive = get_qrencode_file(my.install)?
     if (!defined(my.archive))
-        trace1("setup__get_qrencode_url:setup__get_qrencode_file() = []")
+        trace1("get_qrencode_url:get_qrencode_file() = []")
         return
     endif
     define my.base_url = "http\://fukuchi.org/works/qrencode"
     define my.url = "$(my.base_url)/$(my.archive)"
-    trace1("setup__get_qrencode_url = $(my.url)")
+    trace1("get_qrencode_url = $(my.url)")
     return my.url
 endfunction
 
 # Functions with specific knowledge of Boost archive file name and URL structure.
 
-function setup__get_boost_file(install)
-    define my.install = setup__get_boost_file.install
-    define my.version = setup__get_archive_version(my.install, "boost")?
+function get_boost_file(install)
+    define my.install = get_boost_file.install
+    define my.version = get_archive_version(my.install, "boost")?
     if (!defined(my.version))
-        trace1("setup__get_boost_file:setup__get_archive_version() = []")
+        trace1("get_boost_file:get_archive_version() = []")
         return
     endif
     define my.underscore_version = string.convch(my.version, ".", "_")
     return "boost_$(my.underscore_version).tar.bz2"
 endfunction
 
-function setup__get_boost_url(install)
-    trace1("setup__get_boost_url()")
-    define my.install = setup__get_boost_url.install
-    define my.version = setup__get_archive_version(my.install, "boost")?
+function get_boost_url(install)
+    trace1("get_boost_url()")
+    define my.install = get_boost_url.install
+    define my.version = get_archive_version(my.install, "boost")?
     if (!defined(my.version))
-        trace1("setup__get_boost_url:setup__get_archive_version()) = []")
+        trace1("get_boost_url:get_archive_version()) = []")
         return
     endif
-    define my.archive = setup__get_boost_file(my.install)?
+    define my.archive = get_boost_file(my.install)?
     if (!defined(my.archive))
-        trace1("setup__get_boost_url:setup__get_boost_file() = []")
+        trace1("get_boost_url:get_boost_file() = []")
         return
     endif
     define my.base_url = "http\://downloads.sourceforge.net/project/boost/boost"
     define my.url = "$(my.base_url)/$(my.version)/$(my.archive)"
-    trace1("setup__get_boost_url = $(my.url)")
+    trace1("get_boost_url = $(my.url)")
     return my.url
 endfunction
 
@@ -194,8 +194,8 @@ endfunction
 .endtemplate
 .template 1
 .
-.macro setup__documentation(repository)
-.   define my.repo = setup__documentation.repository
+.macro documentation(repository)
+.   define my.repo = documentation.repository
 # Script to build and install $(my.repo.name).
 #
 # Script options:
@@ -229,9 +229,9 @@ endfunction
 # the exception of the --build-<item> options, which are for the script only.
 # Depending on the caller's permission to the --prefix or --build-dir
 # directory, the script may need to be sudo'd.
-.endmacro # setup__documentation
+.endmacro # documentation
 .
-.macro setup__define_build_directory(repository)
+.macro define_build_directory(repository)
 .   heading2("The default source directory.")
 BUILD_SRC_DIR=""
 
@@ -242,10 +242,10 @@ BUILD_OBJ_DIR=""
 BUILD_MODE="rebase"
 
 .
-.endmacro # setup__define_build_directory
+.endmacro # define_build_directory
 .
-.macro setup__define_icu(install)
-.   define my.install = setup__define_icu.install
+.macro define_icu(install)
+.   define my.install = define_icu.install
 .   define my.url = get_icu_url(my.install)?
 .   if (!defined(my.url))
 .       #abort "A version of icu is not defined."
@@ -255,10 +255,10 @@ BUILD_MODE="rebase"
 ICU_URL="$(my.url)"
 ICU_ARCHIVE="$(get_icu_file(my.install))"
 
-.endmacro # setup__define_icu
+.endmacro # define_icu
 .
-.macro setup__define_zlib(install)
-.   define my.install = setup__define_zlib.install
+.macro define_zlib(install)
+.   define my.install = define_zlib.install
 .   define my.url = get_zlib_url(my.install)?
 .   if (!defined(my.url))
 .       #abort "A version of zlib is not defined."
@@ -268,10 +268,10 @@ ICU_ARCHIVE="$(get_icu_file(my.install))"
 ZLIB_URL="$(my.url)"
 ZLIB_ARCHIVE="$(get_zlib_file(my.install))"
 
-.endmacro # setup__define_zlib
+.endmacro # define_zlib
 .
-.macro setup__define_png(install)
-.   define my.install = setup__define_png.install
+.macro define_png(install)
+.   define my.install = define_png.install
 .   define my.url = get_png_url(my.install)?
 .   if (!defined(my.url))
 .       #abort "A version of png is not defined."
@@ -281,10 +281,10 @@ ZLIB_ARCHIVE="$(get_zlib_file(my.install))"
 PNG_URL="$(my.url)"
 PNG_ARCHIVE="$(get_png_file(my.install))"
 
-.endmacro # setup__define_png
+.endmacro # define_png
 .
-.macro setup__define_qrencode(install)
-.   define my.install = setup__define_qrencode.install
+.macro define_qrencode(install)
+.   define my.install = define_qrencode.install
 .   define my.url = get_qrencode_url(my.install)?
 .   if (!defined(my.url))
 .       #abort "A version of qrencode is not defined."
@@ -294,10 +294,10 @@ PNG_ARCHIVE="$(get_png_file(my.install))"
 QRENCODE_URL="$(my.url)"
 QRENCODE_ARCHIVE="$(get_qrencode_file(my.install))"
 
-.endmacro # setup__define_qrencode
+.endmacro # define_qrencode
 .
-.macro setup__define_boost(install)
-.   define my.install = setup__define_boost.install
+.macro define_boost(install)
+.   define my.install = define_boost.install
 .   define my.url = get_boost_url(my.install)?
 .   if (!defined(my.url))
 .       #abort "A version of boost is not defined."
@@ -307,9 +307,9 @@ QRENCODE_ARCHIVE="$(get_qrencode_file(my.install))"
 BOOST_URL="$(my.url)"
 BOOST_ARCHIVE="$(get_boost_file(my.install))"
 
-.endmacro # setup__define_boost
+.endmacro # define_boost
 .
-.macro setup__define_initialize()
+.macro define_initialize()
 .   heading2("Exit this script on the first build error.")
 set -e
 
@@ -463,19 +463,19 @@ display_message "with_boost            : ${with_boost}"
 display_message "with_pkgconfigdir     : ${with_pkgconfigdir}"
 display_message "--------------------------------------------------------------------"
 
-.endmacro # setup__define_initialize
+.endmacro # define_initialize
 .
-.macro setup__define_build_options(build)
-.   define my.build = setup__define_build_options.build
+.macro define_build_options(build)
+.   define my.build = define_build_options.build
 .   heading2("Define $(my.build.name) options.")
 $(my.build.name:upper,c)_OPTIONS=(
 .   for my.build.option as _option
 "$(_option.value)"$(last() ?? ")" ? " \\")
 .   endfor _option
 
-.endmacro # setup__define_build_options
+.endmacro # define_build_options
 .
-.macro setup__define_utility_functions()
+.macro define_utility_functions()
 .
 configure_links()
 {
@@ -666,9 +666,9 @@ push_directory()
     pushd "$DIRECTORY" >/dev/null
 }
 
-.endmacro # setup__define_utility_functions
+.endmacro # define_utility_functions
 .
-.macro setup__define_build_functions()
+.macro define_build_functions()
 .
 
 extract_from_tarball()
@@ -1015,7 +1015,7 @@ build_from_github()
     # Join generated and command line options.
     local CONFIGURATION=("${OPTIONS[@]}" "$@")
 
-	display_heading_message "Prepairing to build $REPO"
+  display_heading_message "Prepairing to build $REPO"
 
     # Build the local repository clone.
     make_project_directory "$REPO" $JOBS $TEST "${CONFIGURATION[@]}"
@@ -1038,70 +1038,70 @@ initialize_object_directory()
 
     create_directory "$BUILD_OBJ_DIR"
 }
-.endmacro # setup__define_build_functions
+.endmacro # define_build_functions
 .
-.macro setup__unpack_from_tarball_icu()
+.macro unpack_from_tarball_icu()
     unpack_from_tarball $ICU_ARCHIVE $ICU_URL gzip "$BUILD_ICU"
-.endmacro # setup__unpack_from_tarball_icu
+.endmacro # unpack_from_tarball_icu
 .
-.macro setup__build_from_tarball_icu()
+.macro build_from_tarball_icu()
     build_from_tarball $ICU_ARCHIVE source $PARALLEL "$BUILD_ICU" "${ICU_OPTIONS[@]}" "$@"
-.endmacro # setup__build_from_tarball_icu
+.endmacro # build_from_tarball_icu
 .
-.macro setup__unpack_from_tarball_zlib()
+.macro unpack_from_tarball_zlib()
     unpack_from_tarball $ZLIB_ARCHIVE $ZLIB_URL gzip "$BUILD_ZLIB"
-.endmacro # setup__unpack_from_tarball_zlib
+.endmacro # unpack_from_tarball_zlib
 .
-.macro setup__build_from_tarball_zlib()
+.macro build_from_tarball_zlib()
     build_from_tarball $ZLIB_ARCHIVE . $PARALLEL "$BUILD_ZLIB" "${ZLIB_OPTIONS[@]}" "$@"
-.endmacro # setup__build_from_tarball_zlib
+.endmacro # build_from_tarball_zlib
 .
-.macro setup__unpack_from_tarball_png()
+.macro unpack_from_tarball_png()
     unpack_from_tarball $PNG_ARCHIVE $PNG_URL xz "$BUILD_PNG"
-.endmacro # setup__unpack_from_tarball_png
+.endmacro # unpack_from_tarball_png
 .
-.macro setup__build_from_tarball_png()
+.macro build_from_tarball_png()
     build_from_tarball $PNG_ARCHIVE . $PARALLEL "$BUILD_PNG" "${PNG_OPTIONS[@]}" "$@"
-.endmacro # setup__build_from_tarball_png
+.endmacro # build_from_tarball_png
 .
-.macro setup__unpack_from_tarball_qrencode()
+.macro unpack_from_tarball_qrencode()
     unpack_from_tarball $QRENCODE_ARCHIVE $QRENCODE_URL bzip2 "$BUILD_QRENCODE"
-.endmacro # setup__unpack_from_tarball_qrencode
+.endmacro # unpack_from_tarball_qrencode
 .
-.macro setup__build_from_tarball_qrencode()
+.macro build_from_tarball_qrencode()
     build_from_tarball $QRENCODE_ARCHIVE . $PARALLEL "$BUILD_QRENCODE" "${QRENCODE_OPTIONS[@]}" "$@"
-.endmacro # setup__build_from_tarball_qrencode
+.endmacro # build_from_tarball_qrencode
 .
-.macro setup__unpack_boost()
+.macro unpack_boost()
     unpack_from_tarball $BOOST_ARCHIVE $BOOST_URL bzip2 "$BUILD_BOOST"
-.endmacro # setup__unpack_boost
+.endmacro # unpack_boost
 .
 
-.macro setup__build_boost()
+.macro build_boost()
     build_from_tarball_boost $BOOST_ARCHIVE $PARALLEL "$BUILD_BOOST" "${BOOST_OPTIONS[@]}"
-.endmacro # setup__build_boost
+.endmacro # build_boost
 .
-.macro setup__create_github(build)
-.   define my.build = setup__create_github.build
+.macro create_github(build)
+.   define my.build = create_github.build
     create_from_github $(my.build.github) $(my.build.repository) $(my.build.branch)
-.endmacro # setup__create_github
+.endmacro # create_github
 .
-.macro setup__build_github(build)
-.   define my.build = setup__build_github.build
+.macro build_github(build)
+.   define my.build = build_github.build
 .   define my.parallel = is_true(my.build.parallel) ?? "$PARALLEL" ? "$SEQUENTIAL"
 .   define my.options = "${$(my.build.name:upper,c)_OPTIONS[@]}"
     build_from_github $(my.build.repository) $(my.parallel) false $(my.options) "$@"
-.endmacro # setup__build_github_test
+.endmacro # build_github_test
 .
-.macro setup__build_github_test(build)
-.   define my.build = setup__build_github_test.build
+.macro build_github_test(build)
+.   define my.build = build_github_test.build
 .   define my.parallel = is_true(my.build.parallel) ?? "$PARALLEL" ? "$SEQUENTIAL"
 .   define my.options = "${$(my.build.name:upper,c)_OPTIONS[@]}"
     build_from_github $(my.build.repository) $(my.parallel) true $(my.options) "$@"
-.endmacro # setup__build_github_test
+.endmacro # build_github_test
 .
-.macro setup__define_create_local_copies(install)
-.   define my.install = setup__define_create_local_copies.install
+.macro define_create_local_copies(install)
+.   define my.install = define_create_local_copies.install
 create_local_copies()
 {
     display_heading_message "Create local copies of required libraries"
@@ -1111,17 +1111,17 @@ create_local_copies()
 .           define my.build_$(_build.name:c) = 0
 .
 .           if (is_icu_build(_build))
-.               setup__unpack_from_tarball_icu()
+.               unpack_from_tarball_icu()
 .           elsif (is_zlib_build(_build))
-.               setup__unpack_from_tarball_zlib()
+.               unpack_from_tarball_zlib()
 .           elsif (is_png_build(_build))
-.               setup__unpack_from_tarball_png()
+.               unpack_from_tarball_png()
 .           elsif (is_qrencode_build(_build))
-.               setup__unpack_from_tarball_qrencode()
+.               unpack_from_tarball_qrencode()
 .           elsif (is_boost_build(_build))
-.               setup__unpack_boost()
+.               unpack_boost()
 .           elsif (is_github_build(_build))
-.               setup__create_github(_build)
+.               create_github(_build)
 .           else
 .               abort "Invalid build type: $(_build.name)."
 .           endif
@@ -1130,10 +1130,10 @@ create_local_copies()
 .   endfor _build
 }
 
-.endmacro # setup__define_create_local_copies
+.endmacro # define_create_local_copies
 .
-.macro setup__define_build_local_copies(install)
-.   define my.install = setup__define_build_local_copies.install
+.macro define_build_local_copies(install)
+.   define my.install = define_build_local_copies.install
 build_local_copies()
 {
     display_heading_message "Build local copies of required libraries"
@@ -1143,20 +1143,20 @@ build_local_copies()
 .           define my.build_$(_build.name:c) = 0
 .
 .           if (is_icu_build(_build))
-.               setup__build_from_tarball_icu()
+.               build_from_tarball_icu()
 .           elsif (is_zlib_build(_build))
-.               setup__build_from_tarball_zlib()
+.               build_from_tarball_zlib()
 .           elsif (is_png_build(_build))
-.               setup__build_from_tarball_png()
+.               build_from_tarball_png()
 .           elsif (is_qrencode_build(_build))
-.               setup__build_from_tarball_qrencode()
+.               build_from_tarball_qrencode()
 .           elsif (is_boost_build(_build))
-.               setup__build_boost()
+.               build_boost()
 .           elsif (is_github_build(_build))
 .               if (!last())
-.                   setup__build_github(_build)
+.                   build_github(_build)
 .               else
-.                   setup__build_github_test(_build)
+.                   build_github_test(_build)
 .               endif
 .           else
 .               abort "Invalid build type: $(_build.name)."
@@ -1166,23 +1166,23 @@ build_local_copies()
 .   endfor _build
 }
 
-.endmacro # setup__define_build_local_copies
+.endmacro # define_build_local_copies
 .
-.macro setup__define_invoke()
+.macro define_invoke()
 push_directory "$BUILD_SRC_DIR"
 initialize_git
 initialize_object_directory
 create_local_copies
 time build_local_copies "${CONFIGURE_OPTIONS[@]}"
 pop_directory
-.endmacro # setup__define_invoke
+.endmacro # define_invoke
 .
 .endtemplate
 .template 0
 ###############################################################################
 # Generation
 ###############################################################################
-function setup__generate()
+function generate_setup()
 for generate.repository by name as _repository
     require(_repository, "repository", "name")
     create_directory(_repository.name)
@@ -1193,44 +1193,57 @@ for generate.repository by name as _repository
     shebang("bash")
     define my.install = _repository->install
     copyleft(_repository.name)
-    setup__documentation(_repository)
+    documentation(_repository)
 
     heading1("Define constants.")
-    setup__define_build_directory(_repository)
-    setup__define_icu(my.install)
-    setup__define_zlib(my.install)
-    setup__define_png(my.install)
-    setup__define_qrencode(my.install)
-    setup__define_boost(my.install)
+    define_build_directory(_repository)
+    define_icu(my.install)
+    define_zlib(my.install)
+    define_png(my.install)
+    define_qrencode(my.install)
+    define_boost(my.install)
 
     heading1("Define utility functions.")
-    setup__define_utility_functions()
+    define_utility_functions()
 
     heading1("Initialize the build environment.")
-    setup__define_initialize()
+    define_initialize()
 
     heading1("Define build options.")
     for my.install.build as _build where count(_build.option) > 0
-         setup__define_build_options(_build)
+         define_build_options(_build)
     endfor _build
 
     heading1("Define build functions.")
-    setup__define_build_functions()
+    define_build_functions()
 
     heading1("The master download/clone/sync function.")
-    setup__define_create_local_copies(my.install)
+    define_create_local_copies(my.install)
 
     heading1("The master build function.")
-    setup__define_build_local_copies(my.install)
+    define_build_local_copies(my.install)
 
     heading1("Build the primary library and all dependencies.")
-    setup__define_invoke()
+    define_invoke()
 
     close
 endfor _repository
-endfunction # setup__generate
+endfunction # generate_setup
 .endtemplate
+.template 0
+###############################################################################
+# Execution
+###############################################################################
+[global].root = ".."
+[global].trace = 0
+[gsl].ignorecase = 0
 
+# Note: expected context root libbitcoin-build directory
+gsl from "library/math.gsl"
+gsl from "library/string.gsl"
+gsl from "library/collections.gsl"
+gsl from "utilities.gsl"
 
+generate_setup()
 
-
+.endtemplate
