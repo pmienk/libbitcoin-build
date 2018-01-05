@@ -1182,11 +1182,12 @@ pop_directory
 ###############################################################################
 # Generation
 ###############################################################################
-function generate_setup()
+function generate_setup(path_prefix)
 for generate.repository by name as _repository
     require(_repository, "repository", "name")
-    create_directory(_repository.name)
-    define my.out_file = "$(_repository.name)/developer_setup.sh"
+    my.output_path = join(my.path_prefix, _repository.name)
+    create_directory(my.output_path)
+    define my.out_file = "$(my.output_path)/developer_setup.sh"
     notify(my.out_file)
     output(my.out_file)
 
@@ -1244,6 +1245,6 @@ gsl from "library/string.gsl"
 gsl from "library/collections.gsl"
 gsl from "utilities.gsl"
 
-generate_setup()
+generate_setup("output")
 
 .endtemplate
