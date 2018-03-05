@@ -245,6 +245,9 @@ endfunction
 .   if (have_build(my.repo->install, "boost"))
 # --build-boost            Builds Boost libraries.
 .   endif
+.   if (have_build(my.repo->install, "zmq"))
+# --build-zmq              Builds ZeroMQ libraries.
+.   endif
 # --build-src-dir=<path>   Location of downloaded and intermediate files.
 # --build-obj-dir=<path>   Location of intermediate object files.
 # --prefix=<absolute-path> Library install location (defaults to /usr/local).
