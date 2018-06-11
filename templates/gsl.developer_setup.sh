@@ -118,7 +118,7 @@ function get_png_url(install)
         trace1("get_png_url:get_png_file() = []")
         return
     endif
-    define my.base_url = "http://downloads.sourceforge.net/project/libpng/libpng16"
+    define my.base_url = "http://downloads.sourceforge.net/project/libpng/libpng16/older-releases"
     define my.url = "$(my.base_url)/$(my.version)/$(my.archive)"
     trace1("get_png_url = $(my.url)")
     return my.url
@@ -407,6 +407,7 @@ for OPTION in "$@"; do
         (--build-src-dir=*)    BUILD_SRC_DIR="${OPTION#*=}";;
         (--build-obj-dir=*)    BUILD_OBJ_DIR="${OPTION#*=}";;
         (--build-mode=*)    BUILD_MODE="${OPTION#*=}";;
+        (--build-stage-only)    BUILD_STAGE_ONLY="yes";;
 
         # Standard build options.
         (--prefix=*)       PREFIX="${OPTION#*=}";;
@@ -506,6 +507,7 @@ display_message "PREFIX                : $PREFIX"
 display_message "BUILD_SRC_DIR         : $BUILD_SRC_DIR"
 display_message "BUILD_OBJ_DIR         : $BUILD_OBJ_DIR"
 display_message "BUILD_MODE            : $BUILD_MODE"
+display_message "BUILD_STAGE_ONLY      : $BUILD_STAGE_ONLY"
 display_message "DISABLE_SHARED        : $DISABLE_SHARED"
 display_message "DISABLE_STATIC        : $DISABLE_STATIC"
 display_message "with_boost            : ${with_boost}"
@@ -1150,7 +1152,11 @@ initialize_object_directory()
 .   define my.build = build_github_test.build
 .   define my.parallel = is_true(my.build.parallel) ?? "$PARALLEL" ? "$SEQUENTIAL"
 .   define my.options = "${$(my.build.name:upper,c)_OPTIONS[@]}"
-    build_from_github $(my.build.repository) $(my.parallel) true $(my.options) "$@"
+    if [[ $BUILD_STAGE_ONLY ]]; then
+        display_message "Skipping build of $(my.build.repository) due to staging."
+    else
+        build_from_github $(my.build.repository) $(my.parallel) true $(my.options) "$@"
+    fi
 .endmacro # build_github_test
 .
 .macro define_create_local_copies(install)
