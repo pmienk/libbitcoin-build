@@ -11,6 +11,29 @@
 ###############################################################################
 
 # General repository query functions.
+function test_perform_sync()
+    return "($BUILD_MODE == \"sync\")"
+endfunction
+
+function test_perform_configure()
+    return "($BUILD_MODE == \"sync\") || ($BUILD_MODE == \"configure\")"
+endfunction
+
+function test_perform_build()
+    return "true"
+endfunction
+
+function test_produce_boost()
+    return "($BUILD_TARGET == \"all\") || ($BUILD_TARGET == \"boost\") || ($BUILD_TARGET == \"dependencies\")"
+endfunction
+
+function test_produce_dependencies()
+    return "($BUILD_TARGET == \"all\") || ($BUILD_TARGET == \"dependencies\")"
+endfunction
+
+function test_produce_project()
+    return "($BUILD_TARGET == \"all\") || ($BUILD_TARGET == \"project\")"
+endfunction
 
 function have_build(install, name)
     define my.install = have_build.install
@@ -225,11 +248,101 @@ endfunction
 .endtemplate
 .template 1
 .
+.macro define_script_help(repository)
+.   define my.repo = define_script_help.repository
+display_script_help()
+{
+    display_message "Usage: ./developer_script.sh [OPTION]..."
+    display_message "Manage the installation of $(my.repository.name)."
+    display_message "Script options:"
+.   if (!(my.repo.name = "libbitcoin-consensus"))
+    display_message "  --with-icu               Compile with International Components for Unicode."
+    display_message "                             Since the addition of BIP-39 and later BIP-38 "
+    display_message "                             support, libbitcoin conditionally incorporates ICU "
+    display_message "                              to provide BIP-38 and BIP-39 passphrase "
+    display_message "                             normalization features. Currently "
+    display_message "                             libbitcoin-explorer is the only other library that "
+    display_message "                             accesses this feature, so if you do not intend to "
+    display_message "                             use passphrase normalization this dependency can "
+    display_message "                             be avoided."
+    display_message "  --with-qrencode          Compile with QR Code Support"
+    display_message "                             Since the addition of qrcode support, libbitcoin "
+    display_message "                             conditionally incorporates qrencode. Currently "
+    display_message "                             libbitcoin-explorer is the only other library that "
+    display_message "                             accesses this feature, so if you do not intend to "
+    display_message "                             use qrcode this dependency can be avoided."
+    display_message "  --with-png               Compile with QR Code PNG Output Support"
+    display_message "                             Since the addition of png support, libbitcoin "
+    display_message "                             conditionally incorporates libpng (which in turn "
+    display_message "                             requires zlib). Currently libbitcoin-explorer is "
+    display_message "                             the only other library that accesses this feature, "
+    display_message "                             so if you do not intend to use png this dependency "
+    display_message "                             can be avoided."
+.   endif
+.   if (have_build(my.repo->install, "icu"))
+    display_message "  --build-icu              Builds ICU libraries."
+.   endif
+.   if (have_build(my.repo->install, "zlib"))
+    display_message "  --build-zlib             Builds ZLib libraries."
+.   endif
+.   if (have_build(my.repo->install, "png"))
+    display_message "  --build-png              Builds PNG libraries."
+.   endif
+.   if (have_build(my.repo->install, "qrencode"))
+    display_message "  --build-qrencode         Builds QREncode libraries."
+.   endif
+.   if (have_build(my.repo->install, "boost"))
+    display_message "  --build-boost            Builds Boost libraries."
+.   endif
+.   if (have_build(my.repo->install, "zmq"))
+    display_message "  --build-zmq              Build ZeroMQ libraries."
+.   endif
+    display_message "  --build-mode=<value>     Specifies minimum action to be taken."
+    display_message "                             Valid values: { sync, configure, build }."
+    display_message "  --build-target=<value>   Specifies the targets to be acted upon."
+    display_message "                             Valid values: { all, boost, dependencies, project }."
+    display_message "  --build-src-dir=<path>   Location of downloaded and intermediate files."
+    display_message "  --build-obj-dir=<path>   Location of intermediate object files."
+    display_message "  --prefix=<absolute-path> Library install location (defaults to /usr/local)."
+    display_message "  --disable-shared         Disables shared library builds."
+    display_message "  --disable-static         Disables static library builds."
+    display_message "  --sync-only              Restrict actions to syncing necessary targets."
+    display_message "  --help                   Display usage, overriding script execution."
+    display_message ""
+    display_message "All unrecognized options provided shall be passed as configuration options for "
+    display_message "all dependencies."
+}
+.endmacro # define_script_help
+.
 .macro documentation(repository)
 .   define my.repo = documentation.repository
 # Script to build and install $(my.repo.name).
 #
 # Script options:
+.   if (!(my.repo.name = "libbitcoin-consensus"))
+# --with-icu               Compile with International Components for Unicode.
+#                            Since the addition of BIP-39 and later BIP-38
+#                            support, libbitcoin conditionally incorporates ICU
+#                             to provide BIP-38 and BIP-39 passphrase
+#                            normalization features. Currently
+#                            libbitcoin-explorer is the only other library that
+#                            accesses this feature, so if you do not intend to
+#                            use passphrase normalization this dependency can
+#                            be avoided.
+# --with-qrencode          Compile with QR Code Support
+#                            Since the addition of qrcode support, libbitcoin
+#                            conditionally incorporates qrencode. Currently
+#                            libbitcoin-explorer is the only other library that
+#                            accesses this feature, so if you do not intend to
+#                            use qrcode this dependency can be avoided.
+# --with-png               Compile with QR Code PNG Output Support
+#                            Since the addition of png support, libbitcoin
+#                            conditionally incorporates libpng (which in turn
+#                            requires zlib). Currently libbitcoin-explorer is
+#                            the only other library that accesses this feature,
+#                            so if you do not intend to use png this dependency
+#                            can be avoided.
+.   endif
 .   if (have_build(my.repo->install, "icu"))
 # --build-icu              Builds ICU libraries.
 .   endif
@@ -248,11 +361,19 @@ endfunction
 .   if (have_build(my.repo->install, "zmq"))
 # --build-zmq              Builds ZeroMQ libraries.
 .   endif
+# --build-mode=<value>     Specifies minimum action to be taken."
+#                            Valid values: { sync, configure, build }."
+# --build-target=<value>   Specifies the targets to be acted upon."
+#                            Valid values: { all, boost, dependencies, project }."
+# --build-mode=<value>     Specifies minimum action to be taken (sync, configure, build).
+# --build-target=<value>   Specifies the targets to be acted upon (all, boost, dependencies, project).
 # --build-src-dir=<path>   Location of downloaded and intermediate files.
 # --build-obj-dir=<path>   Location of intermediate object files.
 # --prefix=<absolute-path> Library install location (defaults to /usr/local).
 # --disable-shared         Disables shared library builds.
 # --disable-static         Disables static library builds.
+# --sync-only              Restrict actions to syncing necessary targets.
+# --help                   Display usage, overriding script execution.
 #
 # Verified on Ubuntu 14.04, requires gcc-4.8 or newer.
 # Verified on OSX 10.10, using MacPorts and Homebrew repositories, requires
@@ -272,8 +393,11 @@ BUILD_SRC_DIR=""
 .   heading2("The default objects directory.")
 BUILD_OBJ_DIR=""
 
-.   heading2("The default build mode (rebase, reconfigure, rebuild, reuse).")
-BUILD_MODE="rebase"
+.   heading2("The default build mode (sync, configure, build).")
+BUILD_MODE="unknown"
+
+.   heading2("The default build target (all, boost, dependencies, project).")
+BUILD_TARGET="unknown"
 
 .
 .endmacro # define_build_directory
@@ -360,6 +484,40 @@ BOOST_ARCHIVE="$(get_boost_file(my.install))"
 .   heading2("Exit this script on the first build error.")
 set -e
 
+.   heading2("Parse command line options that are handled by this script.")
+for OPTION in "$@"; do
+    case $OPTION in
+        # Custom build options (in the form of --build-<option>).
+        (--build-icu)           BUILD_ICU="yes";;
+        (--build-zlib)          BUILD_ZLIB="yes";;
+        (--build-png)           BUILD_PNG="yes";;
+        (--build-qrencode)      BUILD_QRENCODE="yes";;
+        (--build-zmq)           BUILD_ZMQ="yes";;
+        (--build-boost)         BUILD_BOOST="yes";;
+        (--build-src-dir=*)     BUILD_SRC_DIR="${OPTION#*=}";;
+        (--build-obj-dir=*)     BUILD_OBJ_DIR="${OPTION#*=}";;
+
+        # Standard build options.
+        (--prefix=*)            PREFIX="${OPTION#*=}";;
+        (--disable-shared)      DISABLE_SHARED="yes";;
+        (--disable-static)      DISABLE_STATIC="yes";;
+        (--with-icu)            WITH_ICU="yes";;
+        (--with-png)            WITH_PNG="yes";;
+        (--with-qrencode)       WITH_QRENCODE="yes";;
+
+        # Standard script options.
+        (--build-mode=*)        BUILD_MODE="${OPTION#*=}";;
+        (--build-target=*)      BUILD_TARGET="${OPTION#*=}";;
+        (--sync-only)           SYNC_ONLY="yes";;
+        (--help)                DISPLAY_HELP="yes";;
+    esac
+done
+
+if [[ $DISPLAY_HELP ]]; then
+    display_script_help
+    exit 0
+fi
+
 .   heading2("Configure build parallelism.")
 SEQUENTIAL=1
 OS=`uname -s`
@@ -394,31 +552,6 @@ if [[ ($OS == Linux && $CC == "clang") || ($OS == OpenBSD) ]]; then
     export CXXFLAGS="-stdlib=lib$STDLIB $CXXFLAGS"
 fi
 
-.   heading2("Parse command line options that are handled by this script.")
-for OPTION in "$@"; do
-    case $OPTION in
-        # Custom build options (in the form of --build-<option>).
-        (--build-icu)      BUILD_ICU="yes";;
-        (--build-zlib)     BUILD_ZLIB="yes";;
-        (--build-png)      BUILD_PNG="yes";;
-        (--build-qrencode) BUILD_QRENCODE="yes";;
-        (--build-zmq)      BUILD_ZMQ="yes";;
-        (--build-boost)    BUILD_BOOST="yes";;
-        (--build-src-dir=*)    BUILD_SRC_DIR="${OPTION#*=}";;
-        (--build-obj-dir=*)    BUILD_OBJ_DIR="${OPTION#*=}";;
-        (--build-mode=*)    BUILD_MODE="${OPTION#*=}";;
-        (--build-stage-only)    BUILD_STAGE_ONLY="yes";;
-
-        # Standard build options.
-        (--prefix=*)       PREFIX="${OPTION#*=}";;
-        (--disable-shared) DISABLE_SHARED="yes";;
-        (--disable-static) DISABLE_STATIC="yes";;
-        (--with-icu)       WITH_ICU="yes";;
-        (--with-png)       WITH_PNG="yes";;
-        (--with-qrencode)  WITH_QRENCODE="yes";;
-    esac
-done
-
 .   heading2("Normalize of static and shared options.")
 if [[ $DISABLE_SHARED ]]; then
     CONFIGURE_OPTIONS=("$@" "--enable-static")
@@ -430,9 +563,16 @@ else
 fi
 
 .   heading2("Normalize --build-mode value.")
-if [[ ($BUILD_MODE != "rebase") && ($BUILD_MODE != "reconfigure") && ($BUILD_MODE != "rebuild") && ($BUILD_MODE != "reuse") ]]; then
+if [[ ($BUILD_MODE != "sync") && ($BUILD_MODE != "configure") && ($BUILD_MODE != "build") ]]; then
     display_error "Unsupported build-mode: $BUILD_MODE"
-    display_error "Supported values are: rebase, reconfigure, rebuild, reuse"
+    display_error "Supported values are: sync, configure, build"
+    exit 1
+fi
+
+.   heading2("Normalize --build-target value.")
+if [[ ($BUILD_TARGET != "all") && ($BUILD_TARGET != "boost") && ($BUILD_TARGET != "dependencies") && ($BUILD_TARGET != "project") ]]; then
+    display_error "Unsupported build-target: $BUILD_TARGET"
+    display_error "Supported values are: all, boost, dependencies, project"
     exit 1
 fi
 
@@ -450,6 +590,7 @@ fi
 
 .   heading2("Purge custom build options so they don't break configure.")
 CONFIGURE_OPTIONS=("${CONFIGURE_OPTIONS[@]/--build-*/}")
+CONFIGURE_OPTIONS=("${CONFIGURE_OPTIONS[@]/--sync-only/}")
 
 .   heading2("Always set a prefix (required on OSX and for lib detection).")
 if [[ !($PREFIX) ]]; then
@@ -507,7 +648,8 @@ display_message "PREFIX                : $PREFIX"
 display_message "BUILD_SRC_DIR         : $BUILD_SRC_DIR"
 display_message "BUILD_OBJ_DIR         : $BUILD_OBJ_DIR"
 display_message "BUILD_MODE            : $BUILD_MODE"
-display_message "BUILD_STAGE_ONLY      : $BUILD_STAGE_ONLY"
+display_message "BUILD_TARGET          : $BUILD_TARGET"
+display_message "SYNC_ONLY             : $SYNC_ONLY"
 display_message "DISABLE_SHARED        : $DISABLE_SHARED"
 display_message "DISABLE_STATIC        : $DISABLE_STATIC"
 display_message "with_boost            : ${with_boost}"
@@ -549,7 +691,7 @@ configure_options()
     done
 
     if [[ -f "Makefile" ]]; then
-        if [[ $BUILD_MODE == "reconfigure" ]]; then
+        if [[ $(test_perform_configure()) ]]; then
             display_message "Reconfiguring $PROJ_CONFIG_DIR..."
             $PROJ_CONFIG_DIR/configure "$@"
         else
@@ -566,7 +708,7 @@ create_directory()
     local DIRECTORY="$1"
 
     if [[ -d "$DIRECTORY" ]]; then
-        if [[ $BUILD_MODE == "rebase" ]]; then
+        if [[ $(test_perform_sync()) ]]; then
             display_message "Reinitializing directory $DIRECTORY..."
             rm -rf "$DIRECTORY"
             mkdir "$DIRECTORY"
@@ -662,7 +804,7 @@ make_jobs()
     local JOBS=$1
     shift 1
 
-    if [[ BUILD_MODE == "rebuild" ]]; then
+    if [[ $(test_perform_build()) ]]; then
         display_message "BUILD_MODE=rebuild triggered 'make clean'..."
         make clean
     fi
@@ -752,7 +894,7 @@ unpack_from_tarball()
     local TARGET_DIR="build-$ARCHIVE"
 
     if [[ -d "$TARGET_DIR" ]]; then
-        if [[ $BUILD_MODE == "rebase" ]]; then
+        if [[ $(test_perform_sync()) ]]; then
             display_message "Re-downloading $ARCHIVE..."
             rm -rf "$TARGET_DIR"
             extract_from_tarball "$TARGET_DIR" "$URL" "$ARCHIVE" "$COMPRESSION"
@@ -787,7 +929,7 @@ create_from_github()
     display_heading_message "Prepairing to aquire $FORK/$BRANCH"
 
     if [[ -d "$REPO" ]]; then
-        if [[ $BUILD_MODE == "rebase" ]]; then
+        if [[ $(test_perform_sync()) ]]; then
             display_message "Re-cloning $FORK/$BRANCH..."
             rm -rf "$REPO"
             clone_from_github "$FORK" "$BRANCH"
@@ -1073,7 +1215,7 @@ initialize_object_directory()
     display_heading_message "Initialize object directory"
 
     if [[ -d "$BUILD_OBJ_DIR" ]]; then
-        if [[ ($BUILD_MODE == "rebase") || ($BUILD_MODE == "reconfigure") ]]; then
+        if [[ $(test_perform_configure()) ]]; then
             display_message "Reinitializing $BUILD_OBJ_DIR..."
             rm -rf "$BUILD_OBJ_DIR"
         else
@@ -1087,80 +1229,77 @@ initialize_object_directory()
 }
 .endmacro # define_build_functions
 .
-.macro unpack_from_tarball_icu()
-    unpack_from_tarball $ICU_ARCHIVE $ICU_URL gzip "$BUILD_ICU"
+.macro unpack_from_tarball_icu(prefix)
+$(my.prefix)unpack_from_tarball $ICU_ARCHIVE $ICU_URL gzip "$BUILD_ICU"
 .endmacro # unpack_from_tarball_icu
 .
-.macro build_from_tarball_icu()
-    build_from_tarball $ICU_ARCHIVE source $PARALLEL "$BUILD_ICU" "${ICU_OPTIONS[@]}" "$@"
+.macro build_from_tarball_icu(prefix)
+$(my.prefix)build_from_tarball $ICU_ARCHIVE source $PARALLEL "$BUILD_ICU" "${ICU_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_icu
 .
-.macro unpack_from_tarball_zlib()
-    unpack_from_tarball $ZLIB_ARCHIVE $ZLIB_URL gzip "$BUILD_ZLIB"
+.macro unpack_from_tarball_zlib(prefix)
+$(my.prefix)unpack_from_tarball $ZLIB_ARCHIVE $ZLIB_URL gzip "$BUILD_ZLIB"
 .endmacro # unpack_from_tarball_zlib
 .
-.macro build_from_tarball_zlib()
-    build_from_tarball $ZLIB_ARCHIVE . $PARALLEL "$BUILD_ZLIB" "${ZLIB_OPTIONS[@]}" "$@"
+.macro build_from_tarball_zlib(prefix)
+$(my.prefix)build_from_tarball $ZLIB_ARCHIVE . $PARALLEL "$BUILD_ZLIB" "${ZLIB_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_zlib
 .
-.macro unpack_from_tarball_png()
-    unpack_from_tarball $PNG_ARCHIVE $PNG_URL xz "$BUILD_PNG"
+.macro unpack_from_tarball_png(prefix)
+$(my.prefix)unpack_from_tarball $PNG_ARCHIVE $PNG_URL xz "$BUILD_PNG"
 .endmacro # unpack_from_tarball_png
 .
-.macro build_from_tarball_png()
-    build_from_tarball $PNG_ARCHIVE . $PARALLEL "$BUILD_PNG" "${PNG_OPTIONS[@]}" "$@"
+.macro build_from_tarball_png(prefix)
+$(my.prefix)build_from_tarball $PNG_ARCHIVE . $PARALLEL "$BUILD_PNG" "${PNG_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_png
 .
-.macro unpack_from_tarball_qrencode()
-    unpack_from_tarball $QRENCODE_ARCHIVE $QRENCODE_URL bzip2 "$BUILD_QRENCODE"
+.macro unpack_from_tarball_qrencode(prefix)
+$(my.prefix)unpack_from_tarball $QRENCODE_ARCHIVE $QRENCODE_URL bzip2 "$BUILD_QRENCODE"
 .endmacro # unpack_from_tarball_qrencode
 .
-.macro build_from_tarball_qrencode()
-    build_from_tarball $QRENCODE_ARCHIVE . $PARALLEL "$BUILD_QRENCODE" "${QRENCODE_OPTIONS[@]}" "$@"
+.macro build_from_tarball_qrencode(prefix)
+$(my.prefix)build_from_tarball $QRENCODE_ARCHIVE . $PARALLEL "$BUILD_QRENCODE" "${QRENCODE_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_qrencode
 .
-.macro unpack_from_tarball_zmq()
-    unpack_from_tarball $ZMQ_ARCHIVE $ZMQ_URL gzip "$BUILD_ZMQ"
+.macro unpack_from_tarball_zmq(prefix)
+$(my.prefix)unpack_from_tarball $ZMQ_ARCHIVE $ZMQ_URL gzip "$BUILD_ZMQ"
 .endmacro # unpack_from_tarball_zmq
 .
-.macro build_from_tarball_zmq()
-    build_from_tarball $ZMQ_ARCHIVE . $PARALLEL "$BUILD_ZMQ" "${ZMQ_OPTIONS[@]}" "$@"
+.macro build_from_tarball_zmq(prefix)
+$(my.prefix)build_from_tarball $ZMQ_ARCHIVE . $PARALLEL "$BUILD_ZMQ" "${ZMQ_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_zmq
 .
-.macro unpack_boost()
-    unpack_from_tarball $BOOST_ARCHIVE $BOOST_URL bzip2 "$BUILD_BOOST"
+.macro unpack_boost(prefix)
+$(my.prefix)unpack_from_tarball $BOOST_ARCHIVE $BOOST_URL bzip2 "$BUILD_BOOST"
 .endmacro # unpack_boost
 .
 
-.macro build_boost()
-    build_from_tarball_boost $BOOST_ARCHIVE $PARALLEL "$BUILD_BOOST" "${BOOST_OPTIONS[@]}"
+.macro build_boost(prefix)
+$(my.prefix)build_from_tarball_boost $BOOST_ARCHIVE $PARALLEL "$BUILD_BOOST" "${BOOST_OPTIONS[@]}"
 .endmacro # build_boost
 .
-.macro create_github(build)
+.macro create_github(build, prefix)
 .   define my.build = create_github.build
-    create_from_github $(my.build.github) $(my.build.repository) $(my.build.branch)
+$(my.prefix)create_from_github $(my.build.github) $(my.build.repository) $(my.build.branch)
 .endmacro # create_github
 .
-.macro build_github(build)
+.macro build_github(build, prefix)
 .   define my.build = build_github.build
 .   define my.parallel = is_true(my.build.parallel) ?? "$PARALLEL" ? "$SEQUENTIAL"
 .   define my.options = "${$(my.build.name:upper,c)_OPTIONS[@]}"
-    build_from_github $(my.build.repository) $(my.parallel) false $(my.options) "$@"
+$(my.prefix)build_from_github $(my.build.repository) $(my.parallel) false $(my.options) "$@"
 .endmacro # build_github_test
 .
-.macro build_github_test(build)
+.macro build_github_test(build, prefix)
 .   define my.build = build_github_test.build
 .   define my.parallel = is_true(my.build.parallel) ?? "$PARALLEL" ? "$SEQUENTIAL"
 .   define my.options = "${$(my.build.name:upper,c)_OPTIONS[@]}"
-    if [[ $BUILD_STAGE_ONLY ]]; then
-        display_message "Skipping build of $(my.build.repository) due to staging."
-    else
-        build_from_github $(my.build.repository) $(my.parallel) true $(my.options) "$@"
-    fi
+$(my.prefix)build_from_github $(my.build.repository) $(my.parallel) true $(my.options) "$@"
 .endmacro # build_github_test
 .
 .macro define_create_local_copies(install)
 .   define my.install = define_create_local_copies.install
+.   define my.prefix = "        "
 create_local_copies()
 {
     display_heading_message "Create local copies of required libraries"
@@ -1170,19 +1309,37 @@ create_local_copies()
 .           define my.build_$(_build.name:c) = 0
 .
 .           if (is_icu_build(_build))
-.               unpack_from_tarball_icu()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               unpack_from_tarball_icu(my.prefix)
+    fi
 .           elsif (is_zlib_build(_build))
-.               unpack_from_tarball_zlib()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               unpack_from_tarball_zlib(my.prefix)
+    fi
 .           elsif (is_png_build(_build))
-.               unpack_from_tarball_png()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               unpack_from_tarball_png(my.prefix)
+    fi
 .           elsif (is_qrencode_build(_build))
-.               unpack_from_tarball_qrencode()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               unpack_from_tarball_qrencode(my.prefix)
+    fi
 .           elsif (is_zmq_build(_build))
-.               unpack_from_tarball_zmq()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               unpack_from_tarball_zmq(my.prefix)
+    fi
 .           elsif (is_boost_build(_build))
-.               unpack_boost()
+    if [[ $(test_produce_boost()) ]]; then
+.               unpack_boost(my.prefix)
+    fi
 .           elsif (is_github_build(_build))
-.               create_github(_build)
+.               if (!last())
+    if [[ $(test_produce_dependencies()) ]]; then
+.               else
+    if [[ $(test_produce_project()) ]]; then
+.               endif
+.               create_github(_build, my.prefix)
+    fi
 .           else
 .               abort "Invalid build type: $(_build.name)."
 .           endif
@@ -1195,6 +1352,7 @@ create_local_copies()
 .
 .macro define_build_local_copies(install)
 .   define my.install = define_build_local_copies.install
+.   define my.prefix = "        "
 build_local_copies()
 {
     display_heading_message "Build local copies of required libraries"
@@ -1204,27 +1362,42 @@ build_local_copies()
 .           define my.build_$(_build.name:c) = 0
 .
 .           if (is_icu_build(_build))
-.               build_from_tarball_icu()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               build_from_tarball_icu(my.prefix)
+    fi
 .           elsif (is_zlib_build(_build))
-.               build_from_tarball_zlib()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               build_from_tarball_zlib(my.prefix)
+    fi
 .           elsif (is_png_build(_build))
-.               build_from_tarball_png()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               build_from_tarball_png(my.prefix)
+    fi
 .           elsif (is_qrencode_build(_build))
-.               build_from_tarball_qrencode()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               build_from_tarball_qrencode(my.prefix)
+    fi
 .           elsif (is_zmq_build(_build))
-.               build_from_tarball_zmq()
+    if [[ $(test_produce_dependencies()) ]]; then
+.               build_from_tarball_zmq(my.prefix)
+    fi
 .           elsif (is_boost_build(_build))
-.               build_boost()
+    if [[ $(test_produce_boost()) ]]; then
+.               build_boost(my.prefix)
+    fi
 .           elsif (is_github_build(_build))
 .               if (!last())
-.                   build_github(_build)
+    if [[ $(test_produce_dependencies()) ]]; then
+.                   build_github(_build, my.prefix)
+    fi
 .               else
-.                   build_github_test(_build)
+    if [[ $(test_produce_project()) ]]; then
+.                   build_github_test(_build, my.prefix)
+    fi
 .               endif
 .           else
 .               abort "Invalid build type: $(_build.name)."
 .           endif
-.
 .       endif
 .   endfor _build
 }
@@ -1236,7 +1409,11 @@ push_directory "$BUILD_SRC_DIR"
 initialize_git
 initialize_object_directory
 create_local_copies
-time build_local_copies "${CONFIGURE_OPTIONS[@]}"
+if [[ $SYNC_ONLY ]]; then
+    display_message "Skipping build due to --sync-only."
+else
+    time build_local_copies "${CONFIGURE_OPTIONS[@]}"
+fi
 pop_directory
 .endmacro # define_invoke
 .
@@ -1270,6 +1447,7 @@ for generate.repository by name as _repository
 
     heading1("Define utility functions.")
     define_utility_functions()
+    define_script_help(_repository)
 
     heading1("Initialize the build environment.")
     define_initialize()
