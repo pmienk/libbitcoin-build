@@ -299,11 +299,17 @@ display_script_help()
 .   endif
     display_message "  --build-mode=<value>     Specifies minimum action to be taken."
     display_message "                             Valid values: { sync, configure, build }."
+    display_message "                             Defaults to 'unknown', must be declared."
     display_message "  --build-target=<value>   Specifies the targets to be acted upon."
     display_message "                             Valid values: { all, boost, dependencies, project }."
+    display_message "                             Defaults to 'unknown', must be declared."
     display_message "  --build-src-dir=<path>   Location of downloaded and intermediate files."
+    display_message "                             Has no default, required."
     display_message "  --build-obj-dir=<path>   Location of intermediate object files."
-    display_message "  --prefix=<absolute-path> Library install location (defaults to /usr/local)."
+    display_message "                             Has no default, required."
+    # display_message "  --prefix=<absolute-path> Library install location (defaults to /usr/local)."
+    display_message "  --prefix=<absolute-path> Library install location."
+    display_message "                             Has no default, required."
     display_message "  --disable-shared         Disables shared library builds."
     display_message "  --disable-static         Disables static library builds."
     display_message "  --sync-only              Restrict actions to syncing necessary targets."
@@ -529,6 +535,8 @@ elif [[ ($OS == Darwin) || ($OS == OpenBSD) ]]; then
     PARALLEL=`sysctl -n hw.ncpu`
 else
     display_error "Unsupported system: $OS"
+    display_error ""
+    display_script_help
     exit 1
 fi
 
@@ -566,6 +574,8 @@ fi
 if [[ ($BUILD_MODE != "sync") && ($BUILD_MODE != "configure") && ($BUILD_MODE != "build") ]]; then
     display_error "Unsupported build-mode: $BUILD_MODE"
     display_error "Supported values are: sync, configure, build"
+    display_error ""
+    display_script_help
     exit 1
 fi
 
@@ -573,18 +583,24 @@ fi
 if [[ ($BUILD_TARGET != "all") && ($BUILD_TARGET != "boost") && ($BUILD_TARGET != "dependencies") && ($BUILD_TARGET != "project") ]]; then
     display_error "Unsupported build-target: $BUILD_TARGET"
     display_error "Supported values are: all, boost, dependencies, project"
+    display_error ""
+    display_script_help
     exit 1
 fi
 
 .   heading2("Require source directory declaration.")
 if [[ !($BUILD_SRC_DIR) ]]; then
     display_error "Missing build-src-dir required."
+    display_error ""
+    display_script_help
     exit 1
 fi
 
 .   heading2("Require object directory declaration.")
 if [[ !($BUILD_OBJ_DIR) ]]; then
     display_error "Missing build-obj-dir required."
+    display_error ""
+    display_script_help
     exit 1
 fi
 
@@ -597,6 +613,8 @@ if [[ !($PREFIX) ]]; then
 #    PREFIX="/usr/local"
 #    CONFIGURE_OPTIONS=( "${CONFIGURE_OPTIONS[@]}" "--prefix=$PREFIX")
     display_error "Missing prefix required."
+    display_error ""
+    display_script_help
     exit 1
 else
     # Incorporate the custom libdir into each object, for runtime resolution.
