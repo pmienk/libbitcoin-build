@@ -12,11 +12,6 @@
 
 # General repository query functions.
 
-function have_build(install, name)
-    define my.install = have_build.install
-    return defined(my.install->build(starts_with(build.name, my.name)))
-endfunction
-
 function is_archive_match(build, name)
     define my.build = is_archive_match.build
     trace1("is_archive_match($(my.name)) : $(my.build.name)")
@@ -225,12 +220,13 @@ endfunction
 .endtemplate
 .template 1
 .
-.macro documentation(repository)
+.macro documentation(repository, install)
 .   define my.repository = documentation.repository
+.   define my.install = documentation.install
 # Script to build and install $(my.repository.name).
 #
 # Script options:
-.   if (!(my.repository.name = "libbitcoin-consensus"))
+.   if (have_build(my.install, "icu"))
 # --with-icu               Compile with International Components for Unicode.
 #                            Since the addition of BIP-39 and later BIP-38
 #                            support, libbitcoin conditionally incorporates ICU
@@ -240,12 +236,8 @@ endfunction
 #                            accesses this feature, so if you do not intend to
 #                            use passphrase normalization this dependency can
 #                            be avoided.
-# --with-qrencode          Compile with QR Code Support
-#                            Since the addition of qrcode support, libbitcoin
-#                            conditionally incorporates qrencode. Currently
-#                            libbitcoin-explorer is the only other library that
-#                            accesses this feature, so if you do not intend to
-#                            use qrcode this dependency can be avoided.
+.   endif
+.   if (have_build(my.install, "png"))
 # --with-png               Compile with QR Code PNG Output Support
 #                            Since the addition of png support, libbitcoin
 #                            conditionally incorporates libpng (which in turn
@@ -254,25 +246,33 @@ endfunction
 #                            so if you do not intend to use png this dependency
 #                            can be avoided.
 .   endif
-.   if (have_build(my.repository->install, "icu"))
+.   if (have_build(my.install, "qrencode"))
+# --with-qrencode          Compile with QR Code Support
+#                            Since the addition of qrcode support, libbitcoin
+#                            conditionally incorporates qrencode. Currently
+#                            libbitcoin-explorer is the only other library that
+#                            accesses this feature, so if you do not intend to
+#                            use qrcode this dependency can be avoided.
+.   endif
+.   if (have_build(my.install, "icu"))
 # --build-icu              Builds ICU libraries.
 .   endif
-.   if (have_build(my.repository->install, "zlib"))
+.   if (have_build(my.install, "zlib"))
 # --build-zlib             Builds ZLib libraries.
 .   endif
-.   if (have_build(my.repository->install, "png"))
+.   if (have_build(my.install, "png"))
 # --build-png              Builds PNG libraries.
 .   endif
-.   if (have_build(my.repository->install, "qrencode"))
+.   if (have_build(my.install, "qrencode"))
 # --build-qrencode         Builds QREncode libraries.
 .   endif
-.   if (have_build(my.repository->install, "boost"))
+.   if (have_build(my.install, "boost"))
 # --build-boost            Builds Boost libraries.
 .   endif
-.   if (have_build(my.repository->install, "zmq"))
+.   if (have_build(my.install, "zmq"))
 # --build-zmq              Builds ZeroMQ libraries.
 .   endif
-.   custom_documentation()
+.   custom_documentation(my.repository, my.install)
 # --prefix=<absolute-path> Library install location (defaults to /usr/local).
 # --disable-shared         Disables shared library builds.
 # --disable-static         Disables static library builds.
@@ -289,14 +289,15 @@ endfunction
 # directory, the script may need to be sudo'd.
 .endmacro # documentation
 .
-.macro define_help(repository, script_name)
+.macro define_help(repository, install, script_name)
 .   define my.repository = define_help.repository
+.   define my.install = define_help.install
 display_help()
 {
     display_message "Usage: ./$(my.script_name).sh [OPTION]..."
     display_message "Manage the installation of $(my.repository.name)."
     display_message "Script options:"
-.   if (!(my.repository.name = "libbitcoin-consensus"))
+.   if (have_build(my.install, "icu"))
     display_message "  --with-icu               Compile with International Components for Unicode."
     display_message "                             Since the addition of BIP-39 and later BIP-38 "
     display_message "                             support, libbitcoin conditionally incorporates ICU "
@@ -306,12 +307,8 @@ display_help()
     display_message "                             accesses this feature, so if you do not intend to "
     display_message "                             use passphrase normalization this dependency can "
     display_message "                             be avoided."
-    display_message "  --with-qrencode          Compile with QR Code Support"
-    display_message "                             Since the addition of qrcode support, libbitcoin "
-    display_message "                             conditionally incorporates qrencode. Currently "
-    display_message "                             libbitcoin-explorer is the only other library that "
-    display_message "                             accesses this feature, so if you do not intend to "
-    display_message "                             use qrcode this dependency can be avoided."
+.   endif
+.   if (have_build(my.install, "png"))
     display_message "  --with-png               Compile with QR Code PNG Output Support"
     display_message "                             Since the addition of png support, libbitcoin "
     display_message "                             conditionally incorporates libpng (which in turn "
@@ -320,25 +317,33 @@ display_help()
     display_message "                             so if you do not intend to use png this dependency "
     display_message "                             can be avoided."
 .   endif
-.   if (have_build(my.repository->install, "icu"))
+.   if (have_build(my.install, "qrencode"))
+    display_message "  --with-qrencode          Compile with QR Code Support"
+    display_message "                             Since the addition of qrcode support, libbitcoin "
+    display_message "                             conditionally incorporates qrencode. Currently "
+    display_message "                             libbitcoin-explorer is the only other library that "
+    display_message "                             accesses this feature, so if you do not intend to "
+    display_message "                             use qrcode this dependency can be avoided."
+.   endif
+.   if (have_build(my.install, "icu"))
     display_message "  --build-icu              Builds ICU libraries."
 .   endif
-.   if (have_build(my.repository->install, "zlib"))
+.   if (have_build(my.install, "zlib"))
     display_message "  --build-zlib             Builds ZLib libraries."
 .   endif
-.   if (have_build(my.repository->install, "png"))
+.   if (have_build(my.install, "png"))
     display_message "  --build-png              Builds PNG libraries."
 .   endif
-.   if (have_build(my.repository->install, "qrencode"))
+.   if (have_build(my.install, "qrencode"))
     display_message "  --build-qrencode         Builds QREncode libraries."
 .   endif
-.   if (have_build(my.repository->install, "boost"))
+.   if (have_build(my.install, "boost"))
     display_message "  --build-boost            Builds Boost libraries."
 .   endif
-.   if (have_build(my.repository->install, "zmq"))
+.   if (have_build(my.install, "zmq"))
     display_message "  --build-zmq              Build ZeroMQ libraries."
 .   endif
-.   custom_help()
+.   custom_help(my.repository, my.install, my.script_name)
     display_message "  --prefix=<absolute-path> Library install location (defaults to /usr/local)."
     display_message "  --disable-shared         Disables shared library builds."
     display_message "  --disable-static         Disables static library builds."
@@ -349,8 +354,9 @@ display_help()
 }
 .endmacro # define_help
 .
-.macro define_display_configuration(repository)
+.macro define_display_configuration(repository, install)
 .   define my.repository = define_display_configuration.repository
+.   define my.install = define_display_configuration.install
 display_configuration()
 {
     display_message "$(my.repository.name) installer configuration."
@@ -364,16 +370,34 @@ display_configuration()
     display_message "CXXFLAGS              : $CXXFLAGS"
     display_message "LDFLAGS               : $LDFLAGS"
     display_message "LDLIBS                : $LDLIBS"
+.   if (have_build(my.install, "icu"))
     display_message "WITH_ICU              : $WITH_ICU"
+.   endif
+.   if (have_build(my.install, "png"))
     display_message "WITH_PNG              : $WITH_PNG"
+.   endif
+.   if (have_build(my.install, "qrencode"))
     display_message "WITH_QRENCODE         : $WITH_QRENCODE"
+.   endif
+.   if (have_build(my.install, "icu"))
     display_message "BUILD_ICU             : $BUILD_ICU"
+.   endif
+.   if (have_build(my.install, "zlib"))
     display_message "BUILD_ZLIB            : $BUILD_ZLIB"
+.   endif
+.   if (have_build(my.install, "png"))
     display_message "BUILD_PNG             : $BUILD_PNG"
+.   endif
+.   if (have_build(my.install, "qrencode"))
     display_message "BUILD_QRENCODE        : $BUILD_QRENCODE"
+.   endif
+.   if (have_build(my.install, "zmq"))
     display_message "BUILD_ZMQ             : $BUILD_ZMQ"
+.   endif
+.   if (have_build(my.install, "boost"))
     display_message "BUILD_BOOST           : $BUILD_BOOST"
-.   custom_configuration()
+.   endif
+.   custom_configuration(my.repository, my.install)
     display_message "PREFIX                : $PREFIX"
     display_message "DISABLE_SHARED        : $DISABLE_SHARED"
     display_message "DISABLE_STATIC        : $DISABLE_STATIC"

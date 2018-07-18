@@ -42,7 +42,7 @@ endfunction
 .endtemplate
 .template 1
 .
-.macro custom_help()
+.macro custom_help(repository, install, script_name)
     display_message "  --build-mode=<value>     Specifies minimum action to be taken."
     display_message "                             Valid values: { sync, configure, build }."
     display_message "                             Defaults to 'unknown', must be declared."
@@ -56,7 +56,7 @@ endfunction
     display_message "  --build-sync-only        Restrict actions to syncing necessary targets."
 .endmacro # custom_help
 .
-.macro custom_documentation()
+.macro custom_documentation(repository, install)
 # --build-mode=<value>     Specifies minimum action to be taken."
 #                            Valid values: { sync, configure, build }."
 # --build-target=<value>   Specifies the targets to be acted upon."
@@ -68,7 +68,7 @@ endfunction
 # --build-sync-only        Restrict actions to syncing necessary targets.
 .endmacro # custom_documentation
 .
-.macro custom_configuration()
+.macro custom_configuration(repository, install)
 display_message "BUILD_SRC_DIR         : $BUILD_SRC_DIR"
 display_message "BUILD_OBJ_DIR         : $BUILD_OBJ_DIR"
 display_message "BUILD_MODE            : $BUILD_MODE"
@@ -484,63 +484,66 @@ fi
 # Generation
 ###############################################################################
 function generate_setup(path_prefix)
-for generate.repository by name as _repository
-    require(_repository, "repository", "name")
-    my.output_path = join(my.path_prefix, _repository.name)
-    create_directory(my.output_path)
-    define my.out_file = "$(my.output_path)/developer_setup.sh"
-    notify(my.out_file)
-    output(my.out_file)
+    for generate.repository by name as _repository
+        require(_repository, "repository", "name")
+        define my.output_path = join(my.path_prefix, _repository.name)
+        define my.out_file = "$(my.output_path)/developer_setup.sh"
+        create_directory(my.output_path)
+        notify(my.out_file)
+        output(my.out_file)
 
-    shebang("bash")
-    define my.install = _repository->install
-    copyleft(_repository.name)
-    documentation(_repository)
+        new install as _install
+            cumulative_install(_install, generate, _repository)
 
-    heading1("Define constants.")
-    define_build_variables()
-    define_icu(my.install)
-    define_zlib(my.install)
-    define_png(my.install)
-    define_qrencode(my.install)
-    define_zmq(my.install)
-    define_boost(my.install)
+            shebang("bash")
+            copyleft(_repository.name)
+            documentation(_repository, _install)
 
-    heading1("Define utility functions.")
-    define_utility_functions()
-    define_help(_repository, "developer_setup")
+            heading1("Define constants.")
+            define_build_variables()
+            define_icu(_install)
+            define_zlib(_install)
+            define_png(_install)
+            define_qrencode(_install)
+            define_zmq(_install)
+            define_boost(_install)
 
-    heading1("Initialize the build environment.")
-    define_set_exit_on_error()
-    define_read_parameters()
-    define_parallelism()
-    define_os_specific_settings()
-    define_normalized_configure_options()
-    define_normalize_build_variables()
-    define_prefix()
-    define_pkgconfigdir()
-    define_with_boost_prefix()
-    define_display_configuration(_repository)
+            heading1("Define utility functions.")
+            define_utility_functions()
+            define_help(_repository, _install, "developer_setup")
 
-    heading1("Define build options.")
-    for my.install.build as _build where count(_build.option) > 0
-         define_build_options(_build)
-    endfor _build
+            heading1("Initialize the build environment.")
+            define_set_exit_on_error()
+            define_read_parameters()
+            define_parallelism()
+            define_os_specific_settings()
+            define_normalized_configure_options()
+            define_normalize_build_variables()
+            define_prefix()
+            define_pkgconfigdir()
+            define_with_boost_prefix()
+            define_display_configuration(_repository, _install)
 
-    heading1("Define build functions.")
-    define_build_functions()
+            heading1("Define build options.")
+            for _install.build as _build where count(_build.option) > 0
+                 define_build_options(_build)
+            endfor _build
 
-    heading1("The master download/clone/sync function.")
-    define_create_local_copies(my.install)
+            heading1("Define build functions.")
+            define_build_functions()
 
-    heading1("The master build function.")
-    define_build_local_copies(my.install)
+            heading1("The master download/clone/sync function.")
+            define_create_local_copies(_install)
 
-    heading1("Build the primary library and all dependencies.")
-    define_invoke()
+            heading1("The master build function.")
+            define_build_local_copies(_install)
 
-    close
-endfor _repository
+            heading1("Build the primary library and all dependencies.")
+            define_invoke()
+
+            close
+        endnew _install
+    endfor _repository
 endfunction # generate_setup
 .endtemplate
 .template 0
