@@ -230,7 +230,7 @@ make_project_directory()
 
     push_obj_directory "$PROJ_NAME"
     configure_options "$PROJ_CONFIG_DIR" "$@"
-    make_jobs $JOBS
+    make_jobs true $JOBS
 
     if [[ $TEST == true ]]; then
         make_tests $JOBS
@@ -248,11 +248,12 @@ make_project_directory()
 # make_jobs jobs [make_options]
 make_jobs()
 {
-    local JOBS=$1
-    shift 1
+    local PRECLEAN=$1
+    local JOBS=$2
+    shift 2
 
-    if [[ $(test_perform_build()) ]]; then
-        display_message "BUILD_MODE=rebuild triggered 'make clean'..."
+    if [[ $PRECLEAN ]]; then
+        display_message "Requested 'make clean'..."
         make clean
     fi
 
