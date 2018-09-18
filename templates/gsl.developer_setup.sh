@@ -559,7 +559,7 @@ gsl from "library/math.gsl"
 gsl from "library/string.gsl"
 gsl from "library/collections.gsl"
 gsl from "utilities.gsl"
-gsl from "templates/common_setup_sh.gsl"
+gsl from "templates/shared/common_install_shell_artifacts.gsl"
 
 generate_setup("output")
 
