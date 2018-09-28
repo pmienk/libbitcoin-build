@@ -84,7 +84,7 @@ make_current_directory()
 
     ./autogen.sh
     configure_options "$@"
-    make_jobs true "$JOBS"
+    make_jobs "$JOBS"
     make install
     configure_links
 }
@@ -95,13 +95,8 @@ make_current_directory()
 # make_jobs jobs [make_options]
 make_jobs()
 {
-    local PRECLEAN=$1
-    local JOBS=$2
-    shift 2
-
-    #if [[ $PRECLEAN ]]; then
-    #    make clean
-    #fi
+    local JOBS=$1
+    shift 1
 
     SEQUENTIAL=1
     # Avoid setting -j1 (causes problems on Travis).
