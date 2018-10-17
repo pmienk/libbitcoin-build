@@ -952,13 +952,21 @@ build_from_tarball()
         patch_zlib_configuration
     fi
 
+    push_obj_directory "$TARGET"
+
     # Join generated and command line options.
     local CONFIGURATION=("${OPTIONS[@]}" "$@")
 
-    push_obj_directory "$TARGET"
-    configure_options "$PROJ_CONFIG_DIR" "${CONFIGURATION[@]}"
-    $(my.make_jobs_preclean) "$JOBS" --silent
-    make install
+    if [[ $ARCHIVE == "$MBEDTLS_ARCHIVE" ]]; then
+        cp -r "$PROJ_CONFIG_DIR"/* .
+        make -j "$JOBS" lib
+        make DESTDIR=$PREFIX install
+    else
+        configure_options "$PROJ_CONFIG_DIR" "${CONFIGURATION[@]}"
+        $(my.make_jobs_preclean) "$JOBS" --silent
+        make install
+    fi
+
     configure_links
 
     # Enable shared only zlib build.

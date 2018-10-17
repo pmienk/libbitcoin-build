@@ -327,6 +327,14 @@ $(my.prefix)unpack_from_tarball $ZMQ_ARCHIVE $ZMQ_URL gzip "$BUILD_ZMQ"
 $(my.prefix)build_from_tarball $ZMQ_ARCHIVE . $PARALLEL "$BUILD_ZMQ" "${ZMQ_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_zmq
 .
+.macro unpack_from_tarball_mbedtls(prefix)
+$(my.prefix)unpack_from_tarball $MBEDTLS_ARCHIVE $MBEDTLS_URL gzip "$BUILD_MBEDTLS"
+.endmacro # unpack_from_tarball_mbedtls
+.
+.macro build_from_tarball_mbedtls(prefix)
+$(my.prefix)build_from_tarball $MBEDTLS_ARCHIVE . $PARALLEL "$BUILD_MBEDTLS" "${MBEDTLS_OPTIONS[@]}" "$@"
+.endmacro # build_from_tarball_mbedtls
+.
 .macro unpack_boost(prefix)
 $(my.prefix)unpack_from_tarball $BOOST_ARCHIVE $BOOST_URL bzip2 "$BUILD_BOOST"
 .endmacro # unpack_boost
@@ -385,6 +393,10 @@ create_local_copies()
     if [[ $(test_produce_dependencies()) ]]; then
 .               unpack_from_tarball_zmq(my.prefix)
     fi
+.           elsif (is_mbedtls_build(_build))
+    if [[ $(test_produce_dependencies()) ]]; then
+.               unpack_from_tarball_mbedtls(my.prefix)
+    fi
 .           elsif (is_boost_build(_build))
     if [[ $(test_produce_boost()) ]]; then
 .               unpack_boost(my.prefix)
@@ -437,6 +449,10 @@ build_local_copies()
 .           elsif (is_zmq_build(_build))
     if [[ $(test_produce_dependencies()) ]]; then
 .               build_from_tarball_zmq(my.prefix)
+    fi
+.           elsif (is_mbedtls_build(_build))
+    if [[ $(test_produce_dependencies()) ]]; then
+.               build_from_tarball_mbedtls(my.prefix)
     fi
 .           elsif (is_boost_build(_build))
     if [[ $(test_produce_boost()) ]]; then
@@ -507,6 +523,7 @@ function generate_setup(path_prefix)
             define_png(_install)
             define_qrencode(_install)
             define_zmq(_install)
+            define_mbedtls(_install)
             define_boost(_install)
 
             heading1("Define utility functions.")
@@ -515,7 +532,7 @@ function generate_setup(path_prefix)
 
             heading1("Initialize the build environment.")
             define_set_exit_on_error()
-            define_read_parameters()
+            define_read_parameters(_repository, _install)
             define_parallelism()
             define_os_specific_settings()
             define_normalized_configure_options()
