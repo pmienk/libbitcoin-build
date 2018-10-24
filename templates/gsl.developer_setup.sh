@@ -69,11 +69,11 @@ endfunction
 .endmacro # custom_documentation
 .
 .macro custom_configuration(repository, install)
-display_message "BUILD_SRC_DIR         : $BUILD_SRC_DIR"
-display_message "BUILD_OBJ_DIR         : $BUILD_OBJ_DIR"
-display_message "BUILD_MODE            : $BUILD_MODE"
-display_message "BUILD_TARGET          : $BUILD_TARGET"
-display_message "SYNC_ONLY             : $SYNC_ONLY"
+    display_message "BUILD_SRC_DIR         : $BUILD_SRC_DIR"
+    display_message "BUILD_OBJ_DIR         : $BUILD_OBJ_DIR"
+    display_message "BUILD_MODE            : $BUILD_MODE"
+    display_message "BUILD_TARGET          : $BUILD_TARGET"
+    display_message "SYNC_ONLY             : $SYNC_ONLY"
 .endmacro # custom_configuration
 .
 .macro custom_script_options()
