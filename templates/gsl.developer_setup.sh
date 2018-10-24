@@ -24,12 +24,12 @@ function test_perform_build()
     return "true"
 endfunction
 
-function test_produce_boost()
-    return "($BUILD_TARGET == \"all\") || ($BUILD_TARGET == \"boost\") || ($BUILD_TARGET == \"dependencies\")"
-endfunction
-
 function test_produce_dependencies()
     return "($BUILD_TARGET == \"all\") || ($BUILD_TARGET == \"dependencies\")"
+endfunction
+
+function test_produce_libbitcoin()
+    return "($BUILD_TARGET == \"all\") || ($BUILD_TARGET == \"libbitcoin\")"
 endfunction
 
 function test_produce_project()
@@ -47,7 +47,7 @@ endfunction
     display_message "                             Valid values: { sync, configure, build }."
     display_message "                             Defaults to 'unknown', must be declared."
     display_message "  --build-target=<value>   Specifies the targets to be acted upon."
-    display_message "                             Valid values: { all, boost, dependencies, project }."
+    display_message "                             Valid values: { all, dependencies, libbitcoin, project }."
     display_message "                             Defaults to 'unknown', must be declared."
     display_message "  --build-src-dir=<path>   Location of downloaded and intermediate files."
     display_message "                             Has no default, required."
@@ -57,12 +57,10 @@ endfunction
 .endmacro # custom_help
 .
 .macro custom_documentation(repository, install)
-# --build-mode=<value>     Specifies minimum action to be taken."
-#                            Valid values: { sync, configure, build }."
-# --build-target=<value>   Specifies the targets to be acted upon."
-#                            Valid values: { all, boost, dependencies, project }."
-# --build-mode=<value>     Specifies minimum action to be taken (sync, configure, build).
-# --build-target=<value>   Specifies the targets to be acted upon (all, boost, dependencies, project).
+# --build-mode=<value>     Specifies minimum action to be taken.
+#                            Valid values: { sync, configure, build }.
+# --build-target=<value>   Specifies the targets to be acted upon.
+#                            Valid values: { all, dependencies, libbitcoin, project }.
 # --build-src-dir=<path>   Location of downloaded and intermediate files.
 # --build-obj-dir=<path>   Location of intermediate object files.
 # --build-sync-only        Restrict actions to syncing necessary targets.
@@ -95,7 +93,7 @@ BUILD_OBJ_DIR=""
 .   heading2("The default build mode (sync, configure, build).")
 BUILD_MODE="unknown"
 
-.   heading2("The default build target (all, boost, dependencies, project).")
+.   heading2("The default build target (all, dependencies, libbitcoin, project).")
 BUILD_TARGET="unknown"
 
 .
@@ -112,9 +110,9 @@ if [[ ($BUILD_MODE != "sync") && ($BUILD_MODE != "configure") && ($BUILD_MODE !=
 fi
 
 .   heading2("Normalize --build-target value.")
-if [[ ($BUILD_TARGET != "all") && ($BUILD_TARGET != "boost") && ($BUILD_TARGET != "dependencies") && ($BUILD_TARGET != "project") ]]; then
+if [[ ($BUILD_TARGET != "all") && ($BUILD_TARGET != "dependencies") && ($BUILD_TARGET != "libbitcoin") && ($BUILD_TARGET != "project") ]]; then
     display_error "Unsupported build-target: $BUILD_TARGET"
-    display_error "Supported values are: all, boost, dependencies, project"
+    display_error "Supported values are: all, dependencies, libbitcoin, project"
     display_error ""
     display_help
     exit 1
@@ -398,12 +396,16 @@ create_local_copies()
 .               unpack_from_tarball_mbedtls(my.prefix)
     fi
 .           elsif (is_boost_build(_build))
-    if [[ $(test_produce_boost()) ]]; then
+    if [[ $(test_produce_dependencies()) ]]; then
 .               unpack_boost(my.prefix)
     fi
 .           elsif (is_github_build(_build))
 .               if (!last())
+.                   if (starts_with(_build.repository, "libbitcoin"))
+    if [[ $(test_produce_libbitcoin()) ]]; then
+.                   else
     if [[ $(test_produce_dependencies()) ]]; then
+.                   endif
 .               else
     if [[ $(test_produce_project()) ]]; then
 .               endif
@@ -455,12 +457,16 @@ build_local_copies()
 .               build_from_tarball_mbedtls(my.prefix)
     fi
 .           elsif (is_boost_build(_build))
-    if [[ $(test_produce_boost()) ]]; then
+    if [[ $(test_produce_dependencies()) ]]; then
 .               build_boost(my.prefix)
     fi
 .           elsif (is_github_build(_build))
 .               if (!last())
+.                   if (starts_with(_build.repository, "libbitcoin"))
+    if [[ $(test_produce_libbitcoin()) ]]; then
+.                   else
     if [[ $(test_produce_dependencies()) ]]; then
+.                   endif
 .                   build_github(_build, my.prefix)
     fi
 .               else
