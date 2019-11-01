@@ -2095,6 +2095,224 @@
 
   </repository>
 
+  <repository name="libbitcoin-migrator" version="4.0.0" email="mienkphi@gmail.com" >
+
+    <package library="bitcoin-migrator" description="Bitcoin Test Project" url="https://github.com/pmienk/libbitcoin-migrator" />
+
+    <configure>
+      <option type="with" name="bash-completiondir" default="no" example="[=DIR]" unprefixed="true" substitute="true" conditional="true" description="Install bash completion support, optionally specifying the directory. This option may require elevated permissions." />
+      <option type="with" name="pkgconfigdir" default="${libdir}/pkgconfig" example="=DIR" unprefixed="true" substitute="true" description="Path to pkgconfig directory." data_type="path" />
+      <option type="with" name="tests" default="yes" conditional="true" description="Compile with unit tests." />
+      <option type="with" name="console" default="yes" conditional="true" description="Compile console application." />
+      <option type="enable" name="ndebug" default="yes" define="NDEBUG" description="Compile without debug assertions." />
+      <option type="enable" name="shared" default="yes" define="BOOST_ALL_DYN_LINK" inherited="true" description="Required for dynamically linking boost test." />
+
+      <dependency name="boost" version="1.62.0">
+          <nuget compiler="vc120" name="boost" version="1.57.0.0" />
+          <nuget compiler="vc140" name="boost" version="1.64.0.0" />
+          <nuget compiler="vc141" name="boost" version="1.64.0.0" />
+      </dependency>
+      <dependency name="boost_unit_test_framework" option="tests">
+          <nuget compiler="vc120" name="boost_unit_test_framework-vc120" version="1.57.0.0" />
+          <nuget compiler="vc140" name="boost_unit_test_framework-vc140" version="1.64.0.0" />
+          <nuget compiler="vc141" name="boost_unit_test_framework-vc141" version="1.64.0.0" />
+      </dependency>
+      <dependency name="bash-completion" version="2.0.0" option="bash-completiondir" unprefixed="true" extract="completionsdir" default="${datadir}/bash-completion/completions" />
+      <dependency name="bitcoin-server" version="4.0.0"  />
+
+      <!-- General flags -->
+      <flag name="std=c++11" comment="Require c++11 for all c++ products." context="c++" />
+
+      <flag name="Wall" comment="Warn on all stuff." context="c" />
+      <flag name="Wall" comment="Warn on all stuff." context="c++" />
+      <flag name="Wextra" comment="Warn on extra stuff." context="c" />
+      <flag name="Wextra" comment="Warn on extra stuff." context="c++" />
+      <flag name="Wpedantic" alternate="pedantic" comment="Be really annoying." context="c" />
+      <flag name="Wpedantic" alternate="pedantic" comment="Be really annoying." context="c++" />
+      <flag name="Wno-reorder" comment="Disallow warning on style order of declarations." context="c++" />
+      <flag name="Wno-missing-field-initializers" comment="Suppress warning for incomplete field initialization." context="c++" />
+      <flag name="Wno-missing-braces" comment="Conform to style." context="c++" />
+      <flag name="Wno-comment" comment="Ignore comments within comments or commenting of backslash extended lines." context="c++" />
+
+      <flag name="Wno-mismatched-tags" compiler="clang" comment="Conflict in stdlib under clang." context="c++" />
+      <!-- <flag name="fvisibility=hidden" compiler="gcc" comment="Hide internal functions from external libs." context="c++" /> -->
+
+      <flag name="fstack-protector" comment="Protect stack." context="link" />
+      <flag name="fstack-protector-all" comment="Protect stack comprehensively." context="link" />
+    </configure>
+
+    <make>
+      <product prefix="pkgconfig" >
+        <file path="libbitcoin-migrator.pc" />
+      </product>
+      <product prefix="doc" >
+        <file path="AUTHORS" />
+        <file path="COPYING" />
+        <file path="ChangeLog" />
+        <file path="INSTALL" />
+        <file path="NEWS" />
+        <file path="README" />
+      </product>
+      <product prefix="lib" path="src" uuid="5ffb5f52-0772-4404-bb2f-39be5f82a158" >
+        <flag define="sysconfdir" />
+        <library name="bitcoin-server" />
+        <headers path="include" />
+        <sources path="src" />
+      </product>
+      <product prefix="bin" path="test" target_name="libbitcoin-migrator-test" test="true" option="tests" uuid="4bd50864-d3bc-4f64-aebb-ddeb8a622fa8" >
+        <runner/>
+        <library name="bitcoin-migrator" />
+        <library name="boost_unit_test_framework" />
+        <headers path="include" />
+        <sources path="test" />
+      </product>
+      <product prefix="bin" path="console" target_name="bm" option="console" uuid="d3404804-c83f-46ce-a5a6-3a39ef93de46" >
+        <library name="bitcoin-migrator" />
+        <headers path="include" />
+        <sources path="console" />
+      </product>
+      <product prefix="include" container="bitcoin" >
+        <files path="include/bitcoin" />
+      </product>
+      <product prefix="bash_completion" distribute="true" install="true" option="bash-completiondir" >
+        <file path="data/bm" />
+      </product>
+      <product prefix="sysconf" container="libbitcoin" option="console" >
+        <file path="data/bm.cfg" />
+      </product>
+    </make>
+
+    <install>
+      <build name="boost" version="1.62.0" parallel="true" nuget="true" >
+        <option value="--with-atomic" />
+        <option value="--with-chrono" />
+        <option value="--with-date_time" />
+        <option value="--with-filesystem" />
+        <option value="--with-iostreams" />
+        <option value="--with-locale" />
+        <option value="--with-log" />
+        <option value="--with-program_options" />
+        <option value="--with-regex" />
+        <option value="--with-system" />
+        <option value="--with-thread" />
+        <option value="--with-test" />
+      </build>
+      <build name="zmq" version="4.3.2" parallel="true" nuget="true" >
+      </build>
+      <build name="secp256k1" github="libbitcoin" repository="secp256k1" branch="version5" parallel="true" nuget="true" >
+        <option value="--disable-tests" />
+        <option value="--enable-module-recovery" />
+        <option value="--enable-endomorphism" />
+      </build>
+      <build name="bitcoin-system" github="libbitcoin" repository="libbitcoin-system" branch="master" parallel="true" >
+        <option value="--without-tests" />
+        <option value="--without-examples" />
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-consensus" github="libbitcoin" repository="libbitcoin-consensus" branch="master" parallel="true" >
+        <option value="--without-tests" />
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-database" github="libbitcoin" repository="libbitcoin-database" branch="master" parallel="true" >
+        <option value="--without-tests" />
+        <option value="--without-tools" />
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-blockchain" github="libbitcoin" repository="libbitcoin-blockchain" branch="master" parallel="true" >
+        <option value="--without-tests" />
+        <option value="--without-tools" />
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-network" github="libbitcoin" repository="libbitcoin-network" branch="master" parallel="true" >
+        <option value="--without-tests" />
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-node" github="libbitcoin" repository="libbitcoin-node" branch="master" parallel="true" >
+        <option value="--without-tests" />
+        <option value="--without-console" />
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-protocol" github="libbitcoin" repository="libbitcoin-protocol" branch="master" parallel="true" >
+        <option value="--without-tests" />
+        <option value="--without-examples" />
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-server" github="libbitcoin" repository="libbitcoin-server" branch="master" parallel="true" >
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+      <build name="bitcoin-migrator" github="pmienk" repository="libbitcoin-migrator" branch="master" parallel="true" >
+        <option value="${with_boost}" />
+        <option value="${with_pkgconfigdir}" />
+      </build>
+    </install>
+
+    <matrix>
+      <job system="osx" compiler="clang" link="static" >
+        <option value="--without-consensus" />
+        <!-- these allow unused build to complete -->
+        <option value="--disable-shared" />
+        <option value="--build-boost" />
+        <option value="--prefix=$TRAVIS_BUILD_DIR/my-prefix" />
+      </job>
+      <job system="linux" compiler="clang" link="static" version="5.0" >
+        <option value="--disable-shared" />
+        <option value="--build-boost" />
+        <option value="--prefix=$TRAVIS_BUILD_DIR/my-prefix" />
+        <option value="CFLAGS='-Os'" />
+        <option value="CXXFLAGS='-Os'" />
+      </job>
+      <job system="linux" compiler="gcc" link="static" coverage="true" >
+        <get name="bash-completion" />
+        <option value="--build-boost" />
+        <option value="--disable-shared" />
+        <option value="--build-dir=my-build" />
+        <option value="--prefix=$TRAVIS_BUILD_DIR/my-prefix" />
+        <option value="--with-bash-completiondir=$TRAVIS_BUILD_DIR/my-prefix/share/bash-completion/completions" />
+        <option value="CFLAGS='-Og -g --coverage'" />
+        <option value="CXXFLAGS='-Og -g --coverage'" />
+      </job>
+      <job system="osx" compiler="clang" link="dynamic" >
+        <get name="boost" />
+        <get name="bash-completion" />
+        <option value="--disable-static" />
+        <option value="--with-bash-completiondir" />
+      </job>
+      <job system="linux" compiler="clang" link="dynamic" sudo="false" >
+        <!-- This version isn't available in the repository. -->
+        <!--<get name="boost1.57" />-->
+        <option value="--build-boost" />
+        <option value="--disable-ndebug" />
+        <option value="--disable-static" />
+        <option value="--prefix=$TRAVIS_BUILD_DIR/my-prefix" />
+        <option value="CFLAGS='-Os'" />
+        <option value="CXXFLAGS='-Os'" />
+      </job>
+      <job system="linux" compiler="gcc" link="dynamic" version="4.8" sudo="false" >
+        <get name="bash-completion" />
+        <option value="--without-consensus" />
+        <option value="--disable-static" />
+        <option value="--build-boost" />
+        <option value="--with-bash-completiondir=$TRAVIS_BUILD_DIR/my-prefix/share/bash-completion/completions" />
+        <option value="--prefix=$TRAVIS_BUILD_DIR/my-prefix" />
+        <option value="CFLAGS='-Os -s'" />
+        <option value="CXXFLAGS='-Os -s'" />
+      </job>
+      <job system="windows" compiler="x64" link="static">
+        <option value="--disable-ndebug" />
+      </job>
+      <job system="windows" compiler="x64" link="static" />
+    </matrix>
+
+  </repository>
+
   <templates>
     <template name="gsl.version.hpp" />
     <template name="gsl.include.hpp" />
