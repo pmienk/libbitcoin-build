@@ -75,12 +75,12 @@ endfunction
 .endmacro # custom_configuration
 .
 .macro custom_script_options()
-        # Unique script options.
-        (--build-src-dir=*)     BUILD_SRC_DIR="${OPTION#*=}";;
-        (--build-obj-dir=*)     BUILD_OBJ_DIR="${OPTION#*=}";;
-        (--build-mode=*)        BUILD_MODE="${OPTION#*=}";;
-        (--build-target=*)      BUILD_TARGET="${OPTION#*=}";;
-        (--build-sync-only)     SYNC_ONLY="yes";;
+            # Unique script options.
+            (--build-src-dir=*)     BUILD_SRC_DIR="${OPTION#*=}";;
+            (--build-obj-dir=*)     BUILD_OBJ_DIR="${OPTION#*=}";;
+            (--build-mode=*)        BUILD_MODE="${OPTION#*=}";;
+            (--build-target=*)      BUILD_TARGET="${OPTION#*=}";;
+            (--build-sync-only)     SYNC_ONLY="yes";;
 .endmacro # custom_script_options
 .
 .macro define_build_variables(repository)
@@ -99,42 +99,42 @@ BUILD_TARGET="unknown"
 .
 .endmacro # define_build_variables
 .
-.macro define_normalize_build_variables()
-.   heading2("Normalize --build-mode value.")
-if [[ ($BUILD_MODE != "sync") && ($BUILD_MODE != "configure") && ($BUILD_MODE != "build") ]]; then
-    display_error "Unsupported build-mode: $BUILD_MODE"
-    display_error "Supported values are: sync, configure, build"
-    display_error ""
-    display_help
-    exit 1
-fi
+.macro define_handle_custom_options()
+.   heading2("Process script specific options.")
+handle_custom_options()
+{
+    if [[ ($BUILD_MODE != "sync") && ($BUILD_MODE != "configure") && ($BUILD_MODE != "build") ]]; then
+        display_error "Unsupported build-mode: $BUILD_MODE"
+        display_error "Supported values are: sync, configure, build"
+        display_error ""
+        display_help
+        exit 1
+    fi
 
-.   heading2("Normalize --build-target value.")
-if [[ ($BUILD_TARGET != "all") && ($BUILD_TARGET != "dependencies") && ($BUILD_TARGET != "libbitcoin") && ($BUILD_TARGET != "project") ]]; then
-    display_error "Unsupported build-target: $BUILD_TARGET"
-    display_error "Supported values are: all, dependencies, libbitcoin, project"
-    display_error ""
-    display_help
-    exit 1
-fi
+    if [[ ($BUILD_TARGET != "all") && ($BUILD_TARGET != "dependencies") && ($BUILD_TARGET != "libbitcoin") && ($BUILD_TARGET != "project") ]]; then
+        display_error "Unsupported build-target: $BUILD_TARGET"
+        display_error "Supported values are: all, dependencies, libbitcoin, project"
+        display_error ""
+        display_help
+        exit 1
+    fi
 
-.   heading2("Require source directory declaration.")
-if [[ !($BUILD_SRC_DIR) ]]; then
-    display_error "Missing build-src-dir required."
-    display_error ""
-    display_help
-    exit 1
-fi
+    if [[ ! ($BUILD_SRC_DIR) ]]; then
+        display_error "Missing build-src-dir required."
+        display_error ""
+        display_help
+        exit 1
+    fi
 
-.   heading2("Require object directory declaration.")
-if [[ !($BUILD_OBJ_DIR) ]]; then
-    display_error "Missing build-obj-dir required."
-    display_error ""
-    display_help
-    exit 1
-fi
+    if [[ ! ($BUILD_OBJ_DIR) ]]; then
+        display_error "Missing build-obj-dir required."
+        display_error ""
+        display_help
+        exit 1
+    fi
+}
 
-.endmacro # define_normalize_build_variables
+.endmacro # define_handle_custom_options
 .
 .macro define_configure_options()
 configure_options()
@@ -145,20 +145,20 @@ configure_options()
     display_message "configure options:"
     for OPTION in "$@"; do
         if [[ $OPTION ]]; then
-            display_message $OPTION
+            display_message "$OPTION"
         fi
     done
 
     if [[ -f "Makefile" ]]; then
         if [[ $(test_perform_configure()) ]]; then
             display_message "Reconfiguring $PROJ_CONFIG_DIR..."
-            $PROJ_CONFIG_DIR/configure "$@"
+            "$PROJ_CONFIG_DIR/configure" "$@"
         else
             display_message "Reusing configuration for $PROJ_CONFIG_DIR..."
         fi
     else
         display_message "Configuring $PROJ_CONFIG_DIR..."
-        $PROJ_CONFIG_DIR/configure "$@"
+        "$PROJ_CONFIG_DIR/configure" "$@"
     fi
 }
 
@@ -191,9 +191,9 @@ push_obj_directory()
     local PROJ_NAME="$1"
     shift
 
-    push_directory $BUILD_OBJ_DIR
-    create_directory $PROJ_NAME
-    push_directory $PROJ_NAME
+    push_directory "$BUILD_OBJ_DIR"
+    create_directory "$PROJ_NAME"
+    push_directory "$PROJ_NAME"
 }
 
 pop_obj_directory()
@@ -214,10 +214,11 @@ make_project_directory()
     shift 3
 
     push_directory "$PROJ_NAME"
-    local PROJ_CONFIG_DIR=\$(pwd)
+    local PROJ_CONFIG_DIR
+    PROJ_CONFIG_DIR=\$(pwd)
 
     if [[ -f "$PROJ_NAME/configure" ]]; then
-        if [[ BUILD_MODE != "reuse" ]]; then
+        if [[ $BUILD_MODE != "reuse" ]]; then
             # reconfigure using autoreconf
             autoreconf -i
         fi
@@ -228,10 +229,10 @@ make_project_directory()
 
     push_obj_directory "$PROJ_NAME"
     configure_options "$PROJ_CONFIG_DIR" "$@"
-    make_jobs true $JOBS
+    make_jobs true "$JOBS"
 
     if [[ $TEST == true ]]; then
-        make_tests $JOBS
+        make_tests "$JOBS"
     fi
 
     make install
@@ -257,7 +258,7 @@ make_jobs()
 
     # Avoid setting -j1 (causes problems on Travis).
     if [[ $JOBS > $SEQUENTIAL ]]; then
-        make -j$JOBS "$@"
+        make -j"$JOBS" "$@"
     else
         make "$@"
     fi
@@ -276,6 +277,8 @@ make_jobs()
 .   define_make_jobs()
 .   define_make_tests("true")
 .   define_push_pop_directory()
+.   define_enable_exit_on_error()
+.   define_disable_exit_on_error()
 .endmacro # define_utility_functions
 .
 .macro define_build_functions()
@@ -290,7 +293,7 @@ $(my.prefix)unpack_from_tarball $ICU_ARCHIVE $ICU_URL gzip "$BUILD_ICU"
 .endmacro # unpack_from_tarball_icu
 .
 .macro build_from_tarball_icu(prefix)
-$(my.prefix)build_from_tarball $ICU_ARCHIVE source $PARALLEL "$BUILD_ICU" "${ICU_OPTIONS[@]}" "$@"
+$(my.prefix)build_from_tarball $ICU_ARCHIVE source "$PARALLEL" "$BUILD_ICU" "${ICU_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_icu
 .
 .macro unpack_from_tarball_zlib(prefix)
@@ -298,7 +301,7 @@ $(my.prefix)unpack_from_tarball $ZLIB_ARCHIVE $ZLIB_URL gzip "$BUILD_ZLIB"
 .endmacro # unpack_from_tarball_zlib
 .
 .macro build_from_tarball_zlib(prefix)
-$(my.prefix)build_from_tarball $ZLIB_ARCHIVE . $PARALLEL "$BUILD_ZLIB" "${ZLIB_OPTIONS[@]}" "$@"
+$(my.prefix)build_from_tarball $ZLIB_ARCHIVE . "$PARALLEL" "$BUILD_ZLIB" "${ZLIB_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_zlib
 .
 .macro unpack_from_tarball_png(prefix)
@@ -306,7 +309,7 @@ $(my.prefix)unpack_from_tarball $PNG_ARCHIVE $PNG_URL xz "$BUILD_PNG"
 .endmacro # unpack_from_tarball_png
 .
 .macro build_from_tarball_png(prefix)
-$(my.prefix)build_from_tarball $PNG_ARCHIVE . $PARALLEL "$BUILD_PNG" "${PNG_OPTIONS[@]}" "$@"
+$(my.prefix)build_from_tarball $PNG_ARCHIVE . "$PARALLEL" "$BUILD_PNG" "${PNG_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_png
 .
 .macro unpack_from_tarball_qrencode(prefix)
@@ -314,7 +317,7 @@ $(my.prefix)unpack_from_tarball $QRENCODE_ARCHIVE $QRENCODE_URL bzip2 "$BUILD_QR
 .endmacro # unpack_from_tarball_qrencode
 .
 .macro build_from_tarball_qrencode(prefix)
-$(my.prefix)build_from_tarball $QRENCODE_ARCHIVE . $PARALLEL "$BUILD_QRENCODE" "${QRENCODE_OPTIONS[@]}" "$@"
+$(my.prefix)build_from_tarball $QRENCODE_ARCHIVE . "$PARALLEL" "$BUILD_QRENCODE" "${QRENCODE_OPTIONS[@]}" "$@"
 .endmacro # build_from_tarball_qrencode
 .
 .macro unpack_from_tarball_zmq(prefix)
@@ -338,7 +341,7 @@ $(my.prefix)unpack_from_tarball $BOOST_ARCHIVE $BOOST_URL bzip2 "$BUILD_BOOST"
 .endmacro # unpack_boost
 .
 .macro build_boost(prefix)
-$(my.prefix)build_from_tarball_boost $BOOST_ARCHIVE $PARALLEL "$BUILD_BOOST" "${BOOST_OPTIONS[@]}"
+$(my.prefix)build_from_tarball_boost $BOOST_ARCHIVE "$PARALLEL" "$BUILD_BOOST" "${BOOST_OPTIONS[@]}"
 .endmacro # build_boost
 .
 .macro create_github(build, prefix)
@@ -350,14 +353,14 @@ $(my.prefix)create_from_github $(my.build.github) $(my.build.repository) $(my.bu
 .   define my.build = build_github.build
 .   define my.parallel = is_true(my.build.parallel) ?? "$PARALLEL" ? "$SEQUENTIAL"
 .   define my.options = "${$(my.build.name:upper,c)_OPTIONS[@]}"
-$(my.prefix)build_from_github $(my.build.repository) $(my.parallel) false $(my.options) "$@"
+$(my.prefix)build_from_github $(my.build.repository) "$(my.parallel)" false "$(my.options)" "$@"
 .endmacro # build_github_test
 .
 .macro build_github_test(build, prefix)
 .   define my.build = build_github_test.build
 .   define my.parallel = is_true(my.build.parallel) ?? "$PARALLEL" ? "$SEQUENTIAL"
 .   define my.options = "${$(my.build.name:upper,c)_OPTIONS[@]}"
-$(my.prefix)build_from_github $(my.build.repository) $(my.parallel) true $(my.options) "$@"
+$(my.prefix)build_from_github $(my.build.repository) "$(my.parallel)" true "$(my.options)" "$@"
 .endmacro # build_github_test
 .
 .macro define_create_local_copies(install)
@@ -536,16 +539,22 @@ function generate_setup(path_prefix)
             define_utility_functions()
             define_help(_repository, _install, "developer_setup")
 
-            heading1("Initialize the build environment.")
-            define_set_exit_on_error()
-            define_read_parameters(_repository, _install)
+            heading1("Define environment initialization functions")
+            define_parse_command_line_options(_repository, _install)
+            define_handle_help_line_option()
+            define_set_operating_system()
             define_parallelism()
-            define_os_specific_settings()
+            define_set_os_specific_compiler_settings()
+            define_link_to_standard_library()
             define_normalized_configure_options()
-            define_normalize_build_variables()
-            define_prefix()
-            define_pkgconfigdir()
-            define_with_boost_prefix()
+            define_handle_custom_options()
+            define_remove_build_options()
+            define_set_prefix()
+            define_set_pkgconfigdir()
+            define_set_with_boost_prefix()
+
+            heading1("Initialize the build environment.")
+            define_initialization_calls()
             define_display_configuration(_repository, _install)
 
             heading1("Define build options.")
