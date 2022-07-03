@@ -378,18 +378,6 @@ create_local_copies()
     if [[ $(test_produce_dependencies()) ]]; then
 .               unpack_from_tarball_icu(my.prefix)
     fi
-.           elsif (is_zlib_build(_build))
-    if [[ $(test_produce_dependencies()) ]]; then
-.               unpack_from_tarball_zlib(my.prefix)
-    fi
-.           elsif (is_png_build(_build))
-    if [[ $(test_produce_dependencies()) ]]; then
-.               unpack_from_tarball_png(my.prefix)
-    fi
-.           elsif (is_qrencode_build(_build))
-    if [[ $(test_produce_dependencies()) ]]; then
-.               unpack_from_tarball_qrencode(my.prefix)
-    fi
 .           elsif (is_zmq_build(_build))
     if [[ $(test_produce_dependencies()) ]]; then
 .               unpack_from_tarball_zmq(my.prefix)
@@ -438,18 +426,6 @@ build_local_copies()
 .           if (is_icu_build(_build))
     if [[ $(test_produce_dependencies()) ]]; then
 .               build_from_tarball_icu(my.prefix)
-    fi
-.           elsif (is_zlib_build(_build))
-    if [[ $(test_produce_dependencies()) ]]; then
-.               build_from_tarball_zlib(my.prefix)
-    fi
-.           elsif (is_png_build(_build))
-    if [[ $(test_produce_dependencies()) ]]; then
-.               build_from_tarball_png(my.prefix)
-    fi
-.           elsif (is_qrencode_build(_build))
-    if [[ $(test_produce_dependencies()) ]]; then
-.               build_from_tarball_qrencode(my.prefix)
     fi
 .           elsif (is_zmq_build(_build))
     if [[ $(test_produce_dependencies()) ]]; then
@@ -528,9 +504,6 @@ function generate_setup(path_prefix)
             heading1("Define constants.")
             define_build_variables()
             define_icu(_install)
-            define_zlib(_install)
-            define_png(_install)
-            define_qrencode(_install)
             define_zmq(_install)
             define_mbedtls(_install)
             define_boost(_install)

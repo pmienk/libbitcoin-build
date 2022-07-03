@@ -224,6 +224,38 @@
       </build>
     </install>
 
+    <gha>
+      <job system="osx" link="dynamic"
+        icu="with"
+        boost="build" />
+
+      <job system="osx" link="static"
+        prefixed="true"
+        icu="build" boost="with" />
+
+      <job system="linux" compiler="clang" link="dynamic"
+        prefixed="true"
+        boost="build" />
+
+      <job system="linux" compiler="clang" link="static"
+        prefixed="true"
+        icu="build" boost="build" />
+
+      <job system="linux" compiler="gcc" link="dynamic"
+        prefixed="true"
+        boost="build" />
+
+      <job system="linux" compiler="gcc" link="static"
+        prefixed="true"
+        icu="build" boost="build"
+        debug="true" coverage="true" />
+
+      <job system="windows" compiler="x64" link="static" debug="false" />
+      <job system="windows" compiler="x64" link="static" debug="true" />
+      <job system="windows" compiler="Win32" link="static" debug="false" />
+      <job system="windows" compiler="Win32" link="static" debug="true" />
+    </gha>
+
     <matrix>
       <!-- Default boost fails on Travis default macOS platform, so bumped to xcode12.2. -->
       <job system="osx" image="xcode12.2" compiler="clang" link="dynamic" >
@@ -2080,6 +2112,7 @@
     <!-- <template name="gsl.Find.cmake" /> -->
     <template name="gsl.CMakeLists.txt" />
     <!-- <template name="gsl.gitignore" /> -->
+    <template name="gsl.integration.yml" />
   </templates>
 
 </generate>

@@ -342,9 +342,9 @@ build_from_travis()
     local OPTIONS=$5
     shift 5
 
-    # The primary build is not downloaded if we are running in Travis.
-    if [[ $TRAVIS == true ]]; then
-        build_from_local "Local $TRAVIS_REPO_SLUG" "$JOBS" "${OPTIONS[@]}" "$@"
+    # The primary build is not downloaded if we are running on a continuous integration system.
+    if [[ $CI == true ]]; then
+        build_from_local "Local $CI_REPOSITORY" "$JOBS" "${OPTIONS[@]}" "$@"
         make_tests "$JOBS"
     else
         build_from_github "$ACCOUNT" "$REPO" "$BRANCH" "$JOBS" "${OPTIONS[@]}" "$@"
