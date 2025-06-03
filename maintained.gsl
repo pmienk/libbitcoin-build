@@ -1,0 +1,68 @@
+.template 0
+###############################################################################
+# Copyright (c) 2014-2025 libbitcoin developers (see COPYING).
+#
+# GSL generate MAINTAINED.md.
+#
+# This is a code generator built using the iMatix GSL code generation
+# language. See https://github.com/imatix/gsl for details.
+###############################################################################
+# Functions
+###############################################################################
+function index_files(files, folder)
+    define my.files = index_files.files
+    define my.folder = index_files.folder
+    define my.directory = open_directory(my.folder)
+
+    for my.directory.directory as _directory by _directory.name
+        define my.subfolder = "$(_directory.path)$(_directory.name)"
+        
+        index_files(my.files, my.subfolder)
+    endfor
+endfunction # index_files
+
+###############################################################################
+# Macros
+###############################################################################
+.endtemplate
+.template 1
+.
+.
+.
+.endtemplate
+.template 0
+###############################################################################
+# Generation
+###############################################################################
+function generate_maintained(path_prefix)
+    define my.out_file = "MAINTAINED.md.files"
+    define my.files_dir = "output"
+
+    new files as _files
+    endnew
+
+    notify(my.out_file)
+    output(my.out_file)
+
+    write_local_includes(_files, _product, my.base, _repository)
+
+    close
+endfunction # generate_maintained
+.endtemplate
+.template 0
+###############################################################################
+# Execution
+###############################################################################
+[global].root = ".."
+[global].trace = 0
+[gsl].ignorecase = 0
+
+# Note: expected context root libbitcoin-build directory
+gsl from "library/math.gsl"
+gsl from "library/string.gsl"
+gsl from "library/collections.gsl"
+gsl from "utilities.gsl"
+
+generate_maintained("")
+
+.endtemplate
