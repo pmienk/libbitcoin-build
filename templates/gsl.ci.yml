@@ -802,7 +802,7 @@ endfunction # get_sln_tests
       - name: Coveralls Calculation
         if: ${{ matrix.coverage == 'cov' }}
         run: |
-          lcov --ignore-errors version,gcov,mismatch --directory . --capture --output-file coverage.info
+          lcov --ignore-errors version,gcov,mismatch,mismatch --directory . --capture --output-file coverage.info
           lcov --ignore-errors unused --remove coverage.info $(my.exclusions) --output-file coverage.info
           lcov --list coverage.info
 
