@@ -37,12 +37,12 @@
       <dependency name="boost_thread" />
       <dependency name="boost_url" />
       <dependency name="boost_unit_test_framework" option="tests" />
-      <dependency name="pthread" system_exclude="android" />
-      <dependency name="rt" function="clock_gettime" system="linux" system_exclude="android" />
+      <!-- <dependency name="pthread" system_exclude="android" /> -->
+      <!-- <dependency name="rt" function="clock_gettime" system="linux" system_exclude="android" /> -->
       <dependency name="icu-i18n" version="55.2" unprefixed="true" option="icu" />
       <!-- TODO: verify this with more recent ICU. -->
       <!-- -ldl is missing from icu package config. -->
-      <dependency name="dl" function="dlopen" system="linux" optionXXX="icu" />
+      <!--<dependency name="dl" function="dlopen" system="linux" optionXXX="icu" />-->
       <!-- Arbitrary minimum version, current nuget package is v0.6.1. -->
       <dependency name="secp256k1" version="0.5.1.0" />
 
@@ -153,12 +153,12 @@
         <!-- boost_locale creates a dependency on boost_thread for thread local storage. -->
         <library name="boost_thread" />
         <library name="boost_url" />
-        <library name="pthread" />
-        <library name="rt" />
+        <!--<library name="pthread" />-->
+        <!-- <library name="rt" /> -->
         <library name="icu-i18n" />
         <!-- TODO: verify this with more recent ICU. -->
         <!-- -ldl is missing from icu package config. -->
-        <library name="dl" />
+        <!-- <library name="dl" /> -->
         <library name="secp256k1" />
         <headers path="include" />
         <sources path="src" />
