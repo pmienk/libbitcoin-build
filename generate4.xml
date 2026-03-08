@@ -2094,7 +2094,6 @@
 
     <!-- cmake -->
     <!-- <template name="gsl.Find.cmake" /> -->
-    <template name="gsl.CMakeLists.txt" />
     <template name="gsl.CMakePresets.json" />
     <!-- <template name="gsl.gitignore" /> -->
 
