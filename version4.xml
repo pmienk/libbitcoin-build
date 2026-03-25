@@ -710,5 +710,9 @@
     <template name="config.cmake.in.gsl"
       path="cmake"
       outpath="builds/cmake" />
+    <!-- resultpath provided relative to expected evaluation - libbitcoin-build/process -->
+    <template name="release.yml.gsl"
+      path="workflow"
+      outpath=".github/workflows" />
   </templates>
 </configuration>
