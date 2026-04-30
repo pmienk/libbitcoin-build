@@ -480,7 +480,7 @@ jobs:
 .   for my.dependencies.dependency as _depend where defined(_depend->github) & (_depend->github.owner = "libbitcoin")
 .       for my.meta.error as _error where defined(_error.logpath) & defined(_error.name)
           if [[ -e "$(_depend.name)/obj/$(_error.logpath)" ]]; then
-            cp "$(_depend.name)/obj/$(_error.logpath)" $(_depend.name)-$(_error.name).errors"
+            cp "$(_depend.name)/obj/$(_error.logpath)" $(_depend.name)-$(_error.name).errors
           fi
 .       endfor
 .   endfor
