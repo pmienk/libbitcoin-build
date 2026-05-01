@@ -628,6 +628,23 @@ $(fix_column("", "  $(_option->hint.text)", my.column, my.prefix, my.suffix))
 .endmacro # define_utility_functions
 .
 .macro define_source_github()
+:github_repository_status
+    set "REPO=%~1"
+    call :push_directory "!REPO!"
+    for /F "tokens=*" %%A in ('git rev-parse HEAD') do (
+        set "DISCOVERED_COMMIT=%%A"
+    )
+.   error_trampoline("    ")
+
+    for /F "tokens=*" %%A in ('git config --get remote.origin.url') do (
+        set "DISCOVERED_URL=%%A"
+    )
+.   error_trampoline("    ")
+
+    call :msg_warn "  commit : !DISCOVERED_COMMIT!"
+    call :msg_warn "  url    : !DISCOVERED_URL!"
+    call :pop_directory
+    exit /b 0
 
 :source_github
     set "OWNER=%~1"
@@ -646,13 +663,29 @@ $(fix_column("", "  $(_option->hint.text)", my.column, my.prefix, my.suffix))
     if exist "%REPOSITORY%" (
         if "!BUILD_USE_LOCAL_SRC!" == "yes" (
             call :msg_warn "Reusing existing '%REPOSITORY%'..."
+            call :github_repository_status "%REPOSITORY%"
+.   error_trampoline("            ")
             call :pop_directory
             exit /b %ERRORLEVEL%
         )
 
-        call :msg_warn "Encountered existing '%REPOSITORY%' directory, removing..."
-        call :remove_directory_force "%REPOSITORY%"
-.   error_trampoline("        ")
+        call :msg_warn "Encountered existing '%REPOSITORY%' directory..."
+        if "!NONINTERACTIVE!" == "yes" (
+            set "CONFIRM=N"
+        ) else (
+            set /p "CONFIRM=Replace '%REPOSITORY%' directory with intended contents? [y/N] "
+        )
+
+        if /I "%CONFIRM%"=="y" (
+            call :remove_directory_force "%REPOSITORY%"
+.   error_trampoline("            ")
+        ) else (
+            msg_error "Aborted build."
+            if not defined CI (
+                pause
+            )
+            exit 0
+        )
     )
 
     call :msg "Cloning %OWNER%/%REPOSITORY%/%TAG%..."
@@ -663,6 +696,8 @@ $(fix_column("", "  $(_option->hint.text)", my.column, my.prefix, my.suffix))
         exit /b 1
     )
 
+    call :github_repository_status "%REPOSITORY%"
+.   error_trampoline("    ")
     call :pop_directory
     exit /b %ERRORLEVEL%
 .endmacro # define_source_github

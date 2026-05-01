@@ -205,10 +205,7 @@
         <job name="gnu">
           <option value="--enable-isystem" />
         </job>
-        <job name="cmake">
-          <flag value="-DNDEBUG" />
-          <option value="--verbose" />
-        </job>
+        <job name="cmake" />
       </entry>
 
       <entry image="macos-latest" config="release" link="static">
@@ -220,12 +217,10 @@
         <job name="gnu">
           <option value="--enable-isystem" />
         </job>
-        <job name="cmake">
-          <option value="--verbose" />
-        </job>
+        <job name="cmake" />
       </entry>
 
-      <entry image="ubuntu-24.04" config="debug" link="dynamic">
+      <entry image="ubuntu-24.04" config="debug" link="static">
         <compiler lang="c" name="clang" version="18" />
         <compiler lang="cxx" name="clang++" version="18" />
         <build name="boost" />
@@ -235,23 +230,22 @@
           <option value="--enable-isystem" />
         </job>
         <job name="cmake" />
-        <job name="presets" preset="nix-gnu-debug-shared" />
-      </entry>
-
-      <entry image="ubuntu-24.04" config="release" link="static">
-        <compiler lang="c" name="clang" version="18" />
-        <compiler lang="cxx" name="clang++" version="18" />
-        <build name="boost" />
-        <build name="secp256k1" />
-
-        <job name="gnu">
-          <option value="--enable-isystem" />
-        </job>
-        <job name="cmake" />
-        <job name="presets" preset="nix-gnu-release-static" />
+        <job name="presets" preset="nix-gnu-debug-static" />
       </entry>
 
       <entry image="ubuntu-24.04" config="release" link="dynamic">
+        <compiler lang="c" name="clang" version="18" />
+        <compiler lang="cxx" name="clang++" version="18" />
+        <build name="boost" />
+        <build name="secp256k1" />
+
+        <job name="gnu">
+          <option value="--enable-isystem" />
+        </job>
+        <job name="cmake" />
+      </entry>
+
+      <entry image="ubuntu-24.04" config="release" link="static">
         <compiler lang="c" name="gcc" version="12" />
         <compiler lang="cxx" name="g++" version="12" />
         <build name="boost" />
@@ -261,7 +255,6 @@
           <option value="--enable-isystem" />
         </job>
         <job name="cmake" />
-        <job name="presets" preset="nix-gnu-release-shared" />
       </entry>
 
       <entry image="ubuntu-24.04" config="debug" link="static">
@@ -1589,6 +1582,13 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       sanitize="true" >
       <symbol long="--build-use-local-src" />
     </option>
+    <option id="noninteractive"
+      canonical="NONINTERACTIVE"
+      comment="Disable any prompt using default."
+      datatype="boolean"
+      sanitize="true" >
+      <symbol long="--noninteractive" />
+    </option>
     <option id="verbose"
       canonical="DISPLAY_VERBOSE"
       comment="Display verbose script output."
@@ -1635,16 +1635,21 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
     </option>
   </registrar>
 
+  <!-- resultpath provided relative to expected evaluation - libbitcoin-build/process -->
   <templates source="version4.xml" resultpath="../output/version4">
-    <!-- resultpath provided relative to expected evaluation - libbitcoin-build/process -->
+
+    <!-- cmake -->
     <template name="CMakeLists.txt.gsl" path="cmake" outpath="builds/cmake">
       <cmake rootpath="../.." />
+      <!-- comment: below is persisted as demonstration of feature, unused currently -->
       <!--<file source="cmake/InTargetProperty.cmake" destination="builds/cmake/modules" />-->
     </template>
     <template name="CMakePresets.json.gsl" path="cmake" outpath="builds/cmake">
       <!-- <cmake rootpath="../.." /> -->
     </template>
     <template name="config.cmake.in.gsl" path="cmake" outpath="builds/cmake" />
+
+    <!-- build/install scripts -->
     <template name="install-gnu.sh.gsl" path="shell" outpath="builds/gnu">
       <error logpath="test-suite.log" />
       <error logpath="test.log" />
@@ -1664,6 +1669,7 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       <option id="build-parallel" />
       <option id="build-use-local-src" />
       <option id="prefix" />
+      <option id="noninteractive" />
       <option id="verbose" />
       <option id="help" />
     </template>
@@ -1686,6 +1692,7 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       <option id="build-parallel" />
       <option id="build-use-local-src" />
       <option id="prefix" />
+      <option id="noninteractive" />
       <option id="verbose" />
       <option id="help" />
       <option id="cmake_prefix_path" />
@@ -1709,6 +1716,7 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       <option id="build-skip-tests" />
       <option id="build-parallel" />
       <option id="build-use-local-src" />
+      <option id="noninteractive" />
       <option id="verbose" />
       <option id="help" />
       <option id="cmake_prefix_path" />
@@ -1731,9 +1739,12 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       <option id="build-full-repositories" />
       <option id="build-skip-tests" />
       <option id="build-use-local-src" />
+      <option id="noninteractive" />
       <option id="verbose" />
       <option id="help" />
     </template>
+
+    <!-- workflows -->
     <template name="ci.yml.gsl" path="yml" outpath=".github/workflows">
       <error name="LastTest" logpath="Testing/Temporary/LastTest.log" />
       <error name="test-suite" logpath="test-suite.log" />
@@ -1742,8 +1753,13 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       <job type="shell" name="cmake" script="builds/cmake/install-cmake.sh" />
       <job type="shell" name="presets" script="builds/cmake/install-presets.sh" />
       <job type="msvc" name="msvc" script="builds\msvc\build-msvc.cmd" />
-    </template>
+      </template>
+
+    <!-- vscode -->
     <template name="code-workspace.gsl" path="vscode" outpath="builds/vscode" />
     <template name="settings.json.gsl" path="vscode" outpath=".vscode" />
+
+    <!-- src -->
+    <!-- <template name="include.hpp.gsl" path="src" outpath="include/bitcoin" /> -->
   </templates>
 </configuration>
