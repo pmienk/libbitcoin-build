@@ -90,16 +90,25 @@ endfunction
 function package(job, entry)
     define my.job = package.job
     define my.entry = package.entry
+    define my.result = ""
 
-    if defined(my.job.package) & defined(my.entry.package)
-        return "$(my.job.package) $(my.entry.package)"
-    elsif defined(my.job.package)
-        return my.job.package
-    elsif defined(my.entry.package)
-        return my.entry.package
-    endif
+    for my.entry.package as _package
+        if (my.result = "")
+            my.result = _package.name
+        else
+            my.result = "$(my.result) $(_package.name)"
+        endif
+    endfor
 
-    return ""
+    for my.job.package as _package
+        if (my.result = "")
+            my.result = _package.name
+        else
+            my.result = "$(my.result) $(_package.name)"
+        endif
+    endfor
+
+    return my.result
 endfunction
 
 function collect_flags(container)
@@ -183,6 +192,43 @@ function count_matrix_entries(identifier, ci)
     endfor
 
     return my.result
+endfunction
+
+function populate_archives(archives, ci)
+    define my.archives = populate_archives.archives
+    define my.ci = populate_archives.ci
+
+    for my.ci.entry as _entry
+        for _entry.package as _package where defined(_package.ppa)
+            if (count(my.archives.ppa, count.identifier = _package.ppa) > 0)
+                define my.ppa = my.archives->ppa(this.identifier = _package.ppa, this)
+                if (count(my.ppa.package, count.name = _package.name) = 0)
+                    copy _package to my.ppa
+                endif
+            else
+                new my.archives.ppa as _ppa
+                    _ppa.identifier = _package.ppa
+                    copy _package to _ppa
+                endnew
+            endif
+        endfor
+
+        for _entry.job as _job
+            for _job.package as _package where defined(_package.ppa)
+                if (count(my.archives.ppa, .identifier = _package.ppa) > 0)
+                    define my.ppa = my.archives.ppa(.identifier = _package.ppa)
+                    if (count(my.ppa.package, count.name = _package.name) = 0)
+                        copy _package to my.ppa
+                    endif
+                else
+                    new my.archives.ppa as _ppa
+                        _ppa.identifier = _package.ppa
+                        copy _package to _ppa
+                    endnew
+                endif
+            endfor
+        endfor
+    endfor
 endfunction
 
 ###############################################################################
@@ -450,6 +496,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
+.   emit_conditional_add_ppa("          ", my.repository)
           sudo apt-get install git build-essential autoconf automake libtool pkg-config ${{ matrix.package || '' }}
           if [[ "${{ matrix.coverage }}" == "lcov" ]]; then
               sudo apt-get install lcov
@@ -541,6 +588,26 @@ jobs:
 .
 .
 .endmacro # 
+.
+.macro emit_conditional_add_ppa(indent, repository)
+.   define my.indent = emit_conditional_add_ppa.indent
+.   define my.repository = emit_conditional_add_ppa.repository
+.
+.   new archives as _archives
+.       populate_archives(_archives, my.repository->ci)
+.       for _archives.ppa as _ppa
+.           for _ppa.package as _package
+.               define my.prefix = first() ?? "if " ? "   "
+.               define my.suffix = last() ?? "; then" ? " ||"
+.
+$(my.indent)$(my.prefix)[[ "${{ matrix.package }}" == *"$(_package.name)"* ]]$(my.suffix)
+.           endfor
+  $(my.indent)sudo add-apt-repository ppa:$(_ppa.identifier) -y
+  $(my.indent)sudo apt-get update
+$(my.indent)fi
+.       endfor
+.   endnew
+.endmacro # emit_conditional_add_ppa
 .
 .endtemplate
 .template 0
