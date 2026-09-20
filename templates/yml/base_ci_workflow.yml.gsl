@@ -314,6 +314,23 @@ jobs:
             echo "base_ref : ${{ github.base_ref }}"
             echo "head_ref : ${{ github.head_ref }}"
 
+.   if (count(my.meta->workflow.trigger(this.value = "pull_request", this)) > 0)
+  cancel-cleanup-action:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+
+    steps:
+      - name: Cancel the workflow run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run cancel ${{ github.run_id }} --repo ${{ github.repository }}
+
+.   endif
+.
 .   new list as _list
 .       canonical_dependency_list(_list, my.repository, my.configuration)
 .
