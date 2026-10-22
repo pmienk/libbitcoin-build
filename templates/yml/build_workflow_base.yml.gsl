@@ -1,0 +1,161 @@
+.template 0
+###############################################################################
+# Copyright (c) 2014-2026 libbitcoin developers (see COPYING).
+#
+# GSL common build workflow generation.
+#
+# This is a code generator built using the iMatix GSL code generation
+# language. See https://github.com/imatix/gsl for details.
+###############################################################################
+
+# Note: expected context root libbitcoin-build/process directory
+[gsl].ignorecase = 0
+
+gsl from "../library/math.gsl"
+gsl from "../library/string.gsl"
+gsl from "../lib/xml.gsl"
+gsl from "../lib/sh-output.gsl"
+gsl from "../lib/debug.gsl"
+gsl from "../lib/filesystem.gsl"
+gsl from "../lib/output.gsl"
+gsl from "../lib/axes.gsl"
+
+###############################################################################
+# Generation
+###############################################################################
+function generate_build_yml(configuration, id)
+    define my.configuration = generate_build_yml.configuration
+    define my.id = generate_build_yml.id
+    define my.filename = left(my.id, string.length(my.id) - 4)
+    require(my.configuration->templates, "templates", "resultpath")
+
+    if !(ends_with(my.id, ".gsl"))
+        abort "Provided id '$(my.id)' does not end with '.gsl'."
+    endif
+
+    define my.template = my.configuration->templates->template(.name = my.id)
+
+    if (!defined(my.template))
+        abort "Generator configuration missing."
+    endif
+
+    require(my.template, "template", "outpath")
+    define my.project_path_suffix = my.template.outpath
+
+    for my.configuration.repository by .name as _repository
+        require(_repository, "repository", "name")
+        define my.output_path = path_append(\
+            my.configuration->templates.resultpath, \
+            path_append(my.path_prefix, \
+                path_append(_repository.name, my.project_path_suffix)))
+
+
+        #if defined(_repository->ci)
+            create_directory(my.output_path)
+
+            define my.out_file = path_append(my.output_path, my.filename)
+            notify(my.out_file)
+            output(my.out_file)
+
+            emit_build_yml(my.template, my.configuration, _repository)
+
+            close
+        #endif
+     endfor _repository
+endfunction
+
+###############################################################################
+# Library-able?
+###############################################################################
+
+###############################################################################
+# Functions
+###############################################################################
+
+###############################################################################
+# Macros
+###############################################################################
+.endtemplate
+.template 1
+.
+.macro emit_build_yml(meta, configuration, repository)
+.   define my.meta = emit_build_yml.meta
+.   define my.configuration = emit_build_yml.configuration
+.   define my.repository = emit_build_yml.repository
+.
+.   define my.github = my.configuration->registrar(this.id = "dependency", this)->dependency(this.name = my.repository.name, this)->github
+.
+.   copyleft(my.repository.name)
+
+name: $(my.meta->workflow.name)
+
+on:
+.   for my.meta->workflow.trigger as _trigger
+  $(_trigger.value):
+.       if (_trigger.value = "pull_request")
+    types: [opened, synchronize, reopened, closed]
+.       endif
+.       if (_trigger.value = "push")
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+.       endif
+.       if ((_trigger.value = "pull_request") | (_trigger.value = "push"))
+    paths:
+      - 'builds/cmake/**'
+      - 'builds/gnu/**'
+      - 'builds/msvc/**'
+.           new project_paths as _paths
+.               populate_project_paths(_paths, my.repository)
+.
+.               for _paths.path as _path by _path.value
+      - '$(_path.value)/**'
+.               endfor
+.           endnew
+.       endif
+.   endfor
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.repository_owner == '$(my.github.owner)' && (github.event.pull_request.number || github.run_id) || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  information:
+    runs-on: ubuntu-latest
+
+    env:
+      CONCURRENCY_GROUP: ${{ github.workflow }}-${{ github.repository_owner == '$(my.github.owner)' && (github.event.pull_request.number || github.run_id) || github.ref }}
+
+    steps:
+        - name: state
+          run: |
+            echo "group    : $CONCURRENCY_GROUP"
+            echo "owner    : ${{ github.repository_owner }}"
+            echo "pr       : ${{ github.event.pull_request }}"
+            echo "pr #     : ${{ github.event.pull_request.number }}"
+            echo "run_id   : ${{ github.run_id }}"
+            echo "ref      : ${{ github.ref }}"
+            echo "base_ref : ${{ github.base_ref }}"
+            echo "head_ref : ${{ github.head_ref }}"
+
+  build:
+    matrix:
+      include:
+.   define my.registrar = my.configuration->registrar(this.id = "ci", this)
+.   new matrix as _matrix
+.       expand_axes(_matrix, my.registrar)
+.
+Summary:
+    entries: $(count(_matrix.entry))
+
+$(_matrix.string())
+.   endnew
+.
+.endmacro # emit_build_yml
+.
+.endtemplate
+

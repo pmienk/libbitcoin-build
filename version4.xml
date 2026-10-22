@@ -2144,186 +2144,394 @@
      </compiler>
   </canonical>
 
+  <registrar id="ci">
+    <!-- order may be important -->
+    <axis group="configuration">
+      <entry value="debug" />
+      <entry value="release" />
+    </axis>
+
+    <axis group="linkage">
+      <entry value="dynamic" />
+      <entry value="static" />
+    </axis>
+
+    <axis group="platform" apply="modulo">
+      <entry value="arm64" />
+      <entry value="x64" />
+    </axis>
+
+    <axis group="os">
+      <entry value="linux" />
+      <entry value="macos" />
+      <entry value="windows" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="arm64" />
+      <entry value="sha3" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="x64" />
+      <entry value="avx2" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="platform" value="arm64" />
+      <entry value="sha3" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="platform" value="x64" />
+      <entry value="shani" />
+    </axis>
+
+    <axis group="image">
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="arm64" />
+      <entry value="ubuntu-24.04-arm" />
+      <!-- <entry value="ubuntu-26.04-arm" /> -->
+    </axis>
+
+    <axis group="image">
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="x64" />
+      <entry value="ubuntu-24.04" />
+      <!-- <entry value="ubuntu-26.04" /> -->
+    </axis>
+
+    <axis group="image">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="arm64" />
+      <entry value="macos-26-arm" />
+    </axis>
+
+    <axis group="image">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="x64" />
+      <entry value="macos-26-intel" />
+    </axis>
+
+    <axis group="image">
+      <applicable group="os" value="windows" />
+      <applicable group="platform" value="arm64" />
+      <entry value="windows-11-vs2026-arm" />
+    </axis>
+
+    <axis group="image">
+      <applicable group="os" value="windows" />
+      <applicable group="platform" value="x64" />
+      <entry value="windows-2025-vs2026" />
+    </axis>
+
+    <axis group="toolchain">
+      <applicable group="os" value="windows" />
+      <entry value="msbuild" />
+    </axis>
+
+    <axis group="toolchain">
+      <applicable group="os" value="macos" />
+      <entry value="cmake" />
+    </axis>
+
+    <axis group="toolchain">
+      <applicable group="os" value="linux" />
+      <applicable group="configuration" value="debug" />
+      <applicable group="linkage" value="static" />
+      <applicable group="platform" value="x64" />
+      <entry value="gnu" />
+    </axis>
+
+    <axis group="toolchain">
+      <applicable group="os" value="linux" />
+      <entry value="cmake" />
+    </axis>
+
+     <axis group="libc" apply="modulo">
+      <applicable group="os" value="linux" />
+      <!-- build tooling restriction -->
+      <applicable group="platform" value="x64" />
+      <entry value="glibc" />
+      <entry value="musl" />
+    </axis>
+
+    <axis group="compiler">
+      <applicable group="os" value="macos" />
+      <applicable group="toolchain" value="cmake" />
+      <applicable group="toolchain" value="gnu" />
+      <entry value="clang" />
+    </axis>
+
+    <axis group="compiler">
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="arm64" />
+      <entry value="gcc" />
+    </axis>
+
+    <axis group="compiler" apply="modulo">
+      <applicable group="os" value="linux" />
+      <applicable group="toolchain" value="cmake" />
+      <applicable group="toolchain" value="gnu" />
+      <entry value="clang" />
+      <entry value="gcc" />
+    </axis>
+
+    <axis group="compiler">
+      <applicable group="toolchain" value="msbuild" />
+      <entry value="cl" />
+    </axis>
+
+    <!--
+    <axis group="compiler-version">
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-24.04" />
+      <entry value="18" />
+      <entry value="19" />
+    </axis>
+
+    <axis group="compiler-version">
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-26.04" />
+      <entry value="20" />
+      <entry value="21" />
+      <entry value="22" />
+    </axis>
+
+    <axis group="compiler-version">
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-24.04-arm" />
+      <entry value="18" />
+      <entry value="19" />
+    </axis>
+
+    <axis group="compiler-version">
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-26.04-arm" />
+      <entry value="20" />
+      <entry value="21" />
+      <entry value="22" />
+    </axis>
+
+     <axis group="compiler-version">
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-24.04" />
+      <entry value="13" />
+      <entry value="14" />
+    </axis>
+
+     <axis group="compiler-version">
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-26.04" />
+      <entry value="13" />
+      <entry value="14" />
+      <entry value="15" />
+    </axis>
+
+     <axis group="compiler-version">
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-24.04-arm" />
+      <entry value="13" />
+      <entry value="14" />
+    </axis>
+
+     <axis group="compiler-version">
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-26.04-arm" />
+      <entry value="13" />
+      <entry value="14" />
+      <entry value="15" />
+    </axis>
+      -->
+  </registrar>
+
   <registrar id="build">
-    <axis id="configuration">
-      <entry name="debug" />
-      <entry name="release" />
+    <!-- order may be important -->
+    <axis group="configuration">
+      <entry value="release" />
     </axis>
 
-    <axis id="linkage">
-      <entry name="dynamic" />
-      <entry name="static" />
+    <axis group="linkage">
+      <entry value="static" />
     </axis>
 
-    <axis id="os">
-      <entry name="linux" />
-      <entry name="macos" />
-      <entry name="windows" />
+    <axis group="os">
+      <entry value="linux" />
+      <entry value="macos" />
+      <entry value="windows" />
     </axis>
 
-    <axis id="platform">
-      <entry name="arm64" />
-      <entry name="x64" />
-    </axis>
-
-    <axis group="optimizations">
-      <applicable id="platform" name="arm64" />
-      <entry name="none" />
-      <entry name="sha" />
-      <entry name="sha3" />
+    <axis group="platform">
+      <entry value="arm64" />
+      <entry value="x64" />
     </axis>
 
     <axis group="optimizations">
-      <applicable id="platform" name="x64" />
-      <entry name="avx2" />
-      <entry name="avx512" />
-      <entry name="shani" />
-      <entry name="avx512-shani" />
-      <entry name="avxifma" />
-      <entry name="avx512-avxifma" />
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="arm64" />
+      <entry value="sha3" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="x64" />
+      <entry value="avx2" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="platform" value="arm64" />
+      <entry value="none" />
+      <entry value="sha" />
+      <entry value="sha3" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="platform" value="x64" />
+      <entry value="avx2" />
+      <entry value="avx512" />
+      <entry value="shani" />
+      <entry value="avx512-shani" />
+      <entry value="avxifma" />
+      <entry value="avx512-avxifma" />
     </axis>
 
     <axis group="image">
-      <applicable id="os" name="linux" />
-      <applicable id="platform" name="arm64" />
-      <entry name="ubuntu-24.04-arm64" />
-      <entry name="ubuntu-26.04-arm64" />
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="arm64" />
+      <entry value="ubuntu-24.04-arm" />
     </axis>
 
     <axis group="image">
-      <applicable id="os" name="linux" />
-      <applicable id="platform" name="x64" />
-      <entry name="ubuntu-24.04" />
-      <entry name="ubuntu-26.04" />
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="x64" />
+      <entry value="ubuntu-24.04" />
     </axis>
 
     <axis group="image">
-      <applicable id="os" name="macos" />
-      <applicable id="platform" name="arm64" />
-      <entry name="macos-26-arm64" />
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="arm64" />
+      <entry value="macos-26-arm" />
     </axis>
 
     <axis group="image">
-      <applicable id="os" name="macos" />
-      <applicable id="platform" name="x64" />
-      <entry name="macos-26-intel" />
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="x64" />
+      <entry value="macos-26-intel" />
     </axis>
 
     <axis group="image">
-      <applicable id="os" name="windows" />
-      <applicable id="platform" name="arm64" />
-      <entry name="windows-11-vs2026-arm" />
+      <applicable group="os" value="windows" />
+      <applicable group="platform" value="arm64" />
+      <entry value="windows-11-vs2026-arm" />
     </axis>
 
     <axis group="image">
-      <applicable id="os" name="windows" />
-      <applicable id="platform" name="x64" />
-      <entry name="windows-2025-vs2026" />
+      <applicable group="os" value="windows" />
+      <applicable group="platform" value="x64" />
+      <entry value="windows-2025-vs2026" />
     </axis>
 
     <axis group="toolchain">
-      <applicable id="os" name="windows" />
-      <entry name="msbuild" />
+      <applicable group="os" value="windows" />
+      <entry value="msbuild" />
     </axis>
 
     <axis group="toolchain">
-      <applicable id="os" name="linux" />
-      <entry name="cmake" />
-      <entry name="gnu" />
-    </axis>
-
-    <axis group="toolchain">
-      <applicable id="os" name="macos" />
-      <entry name="cmake" />
+      <applicable group="os" value="linux" />
+      <applicable group="os" value="macos" />
+      <entry value="cmake" />
     </axis>
 
     <axis group="libc">
-      <applicable id="os" name="linux" />
+      <applicable group="os" value="linux" />
       <!-- build tooling restriction -->
-      <applicable id="platform" name="x64" />
-      <entry name="glibc" />
-      <entry name="musl" />
+      <applicable group="platform" value="x64" />
+      <entry value="glibc" />
+      <entry value="musl" />
     </axis>
 
     <axis group="compiler">
-      <applicable id="toolchain" name="cmake" />
-      <applicable id="toolchain" name="gnu" />
-      <entry name="clang" />
-      <entry name="gcc" />
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="arm64" />
+      <entry value="gcc" />
     </axis>
 
     <axis group="compiler">
-      <applicable id="toolchain" name="msbuild" />
-      <entry name="default" />
+      <applicable group="os" value="linux" />
+      <applicable group="os" value="macos" />
+      <applicable group="toolchain" value="cmake" />
+      <applicable group="toolchain" value="gnu" />
+      <entry value="clang" />
+    </axis>
+
+    <axis group="compiler">
+      <applicable group="toolchain" value="msbuild" />
+      <entry value="cl" />
+    </axis>
+
+    <!--
+    <axis group="compiler-version">
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-24.04" />
+      <entry value="18" />
+      <entry value="19" />
     </axis>
 
     <axis group="compiler-version">
-      <applicable id="compiler" name="clang" />
-      <applicable id="image" name="ubuntu-24.04" />
-      <entry name="default" />
-      <entry name="18" />
-      <entry name="19" />
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-26.04" />
+      <entry value="20" />
+      <entry value="21" />
+      <entry value="22" />
     </axis>
 
     <axis group="compiler-version">
-      <applicable id="compiler" name="clang" />
-      <applicable id="image" name="ubuntu-26.04" />
-      <entry name="default" />
-      <entry name="20" />
-      <entry name="21" />
-      <entry name="22" />
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-24.04-arm" />
+      <entry value="18" />
+      <entry value="19" />
     </axis>
 
     <axis group="compiler-version">
-      <applicable id="compiler" name="clang" />
-      <applicable id="image" name="ubuntu-24.04-arm" />
-      <entry name="default" />
-      <entry name="18" />
-      <entry name="19" />
-    </axis>
-
-    <axis group="compiler-version">
-      <applicable id="compiler" name="clang" />
-      <applicable id="image" name="ubuntu-26.04-arm" />
-      <entry name="default" />
-      <entry name="20" />
-      <entry name="21" />
-      <entry name="22" />
+      <applicable group="compiler" value="clang" />
+      <applicable group="image" value="ubuntu-26.04-arm" />
+      <entry value="20" />
+      <entry value="21" />
+      <entry value="22" />
     </axis>
 
      <axis group="compiler-version">
-      <applicable id="compiler" name="gcc" />
-      <applicable id="image" name="ubuntu-24.04" />
-      <entry name="default" />
-      <entry name="13" />
-      <entry name="14" />
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-24.04" />
+      <entry value="13" />
+      <entry value="14" />
     </axis>
 
      <axis group="compiler-version">
-      <applicable id="compiler" name="gcc" />
-      <applicable id="image" name="ubuntu-26.04" />
-      <entry name="default" />
-      <entry name="13" />
-      <entry name="14" />
-      <entry name="15" />
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-26.04" />
+      <entry value="13" />
+      <entry value="14" />
+      <entry value="15" />
     </axis>
 
      <axis group="compiler-version">
-      <applicable id="compiler" name="gcc" />
-      <applicable id="image" name="ubuntu-24.04-arm" />
-      <entry name="default" />
-      <entry name="13" />
-      <entry name="14" />
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-24.04-arm" />
+      <entry value="13" />
+      <entry value="14" />
     </axis>
 
      <axis group="compiler-version">
-      <applicable id="compiler" name="gcc" />
-      <applicable id="image" name="ubuntu-26.04-arm" />
-      <entry name="default" />
-      <entry name="13" />
-      <entry name="14" />
-      <entry name="15" />
+      <applicable group="compiler" value="gcc" />
+      <applicable group="image" value="ubuntu-26.04-arm" />
+      <entry value="13" />
+      <entry value="14" />
+      <entry value="15" />
     </axis>
+      -->
  </registrar>
 
   <registrar id="dependency">
@@ -3116,6 +3324,12 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
 
     <template name="version-tag.yml.gsl" path="yml" outpath=".github/workflows" />
 
+    <template name="manual_release.yml.gsl" path="yml" outpath=".github/workflows">
+      <workflow name="Build to Release">
+        <trigger value="workflow_dispatch" />
+      </workflow>
+    </template>
+
     <!-- vscode -->
     <template name="code-workspace.gsl" path="vscode" outpath="builds/vscode" />
     <template name="settings.json.gsl" path="vscode" outpath=".vscode" />
@@ -3291,7 +3505,6 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       <file source="props/version4/import/%repository%.import.xml" destination="builds/msvc/vs2026" />
       <file source="props/version4/project/%repository%/%target%/%target%.props" destination="builds/msvc/vs2026/%target%" />
       <file source="props/version4/project/%repository%/%target%/%target%.xml" destination="builds/msvc/vs2026/%target%" optional="true" />
-
     </template>
 
     <template name="vcxproj.filters.gsl"

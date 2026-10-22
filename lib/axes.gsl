@@ -1,0 +1,169 @@
+.template 0
+###############################################################################
+# Copyright (c) 2014-2026 libbitcoin developers (see COPYING).
+#
+# GSL libbitcoin axes utilities in the 'global' scope.
+#
+# This is a code generator built using the iMatix GSL code generation
+# language. See https://github.com/imatix/gsl for details.
+###############################################################################
+
+###############################################################################
+# Functions
+###############################################################################
+
+###############################################################################
+# Specific pattern xml functions
+###############################################################################
+function expand_axes(result, axes)
+    define my.result = expand_axes.result
+    define my.axes = expand_axes.axes
+
+    for my.axes.axis as _axis where defined(_axis.group)
+        if (count(my.result.encountered, this.group = _axis.group, this) = 0)
+            expand_axis(my.result, _axis.group, my.axes)
+        endif
+    endfor
+endfunction
+
+function expand_axis(result, group, axes)
+    define my.result = expand_axis.result
+    define my.group = expand_axis.group
+    define my.axes = expand_axis.axes
+
+    #echo "Entry expand_axis group '$(my.group)'..."
+
+    if (count(my.result.encountered, this.group = my.group, this) > 0)
+        abort("Encountered axis applicability cycle.")
+    endif
+
+    for my.axes.axis as _axis where (_axis.group = my.group)
+        for _axis.applicable as _applicable
+            if (count(my.result.encountered, this.group = _applicable.group, this) = 0)
+                expand_axis(my.result, _applicable.group, my.axes)
+            endif
+        endfor
+    endfor
+
+    if (count(my.result.encountered, this.group = my.group, this) > 0)
+        #echo "Aborting redundant expansion of '$(my.group)'..."
+        return
+    endif
+
+    #echo "Applicability satisfied, expand_axis group '$(my.group)'..."
+    define my.entry_count_initial = count(my.result.entry)
+    define my.initial_populator = (count(my.result.entry) = 0)
+
+    if (my.initial_populator)
+        for my.axes.axis as _axis where _axis.group = my.group
+            for _axis.entry as _axis_value_entry
+                new my.result.entry as _entry
+                    new _entry.field as _field
+                        _field.group = my.group
+                        _field.value = _axis_value_entry.value
+                    endnew
+                endnew
+            endfor
+        endfor
+    else
+        for my.axes.axis as _axis where _axis.group = my.group
+            new root as _original
+                for my.result.entry as _entry where is_applicable(_entry, _axis)
+                    new _entry.field as _field
+                        _field.group = my.group
+                    endnew
+
+                    move _entry to _original
+                endfor
+
+                define my.entry_index = 0
+                for _original.entry as _entry
+                    define my.axis_value_index = 0
+
+                    for _axis.entry as _axis_value
+                        my.axis_value_index = my.axis_value_index + 1
+                        if (defined(_axis.apply) & (_axis.apply = "modulo"))
+                            if !((my.axis_value_index - 1) = math.mod(my.entry_index, count(_axis.entry)))
+                                next
+                            endif
+                        endif
+
+                        _entry->field(this.group = my.group, this).value = _axis_value.value
+                        copy _entry to my.result
+
+                        for my.result.entry as _copy where (count(_copy.field, f.group = my.group & !defined(f.value), f) > 0)
+                            for _copy.field as _field where _field.group = my.group & !defined(_field.value)
+                                _field.value = _axis_value.value
+                            endfor
+                        endfor
+
+                    endfor
+                    my.entry_index = my.entry_index + 1
+                endfor
+                delete _original
+            endnew
+        endfor
+    endif
+
+    define my.entry_count_after = count(my.result.entry)
+
+    new my.result.encountered as _encountered
+        _encountered.group = my.group
+    endnew
+    #echo "Expanded axis group '$(my.group)'"
+    #echo "  Size '$(my.entry_count_initial)' -> '$(my.entry_count_after)'"
+endfunction
+
+function is_applicable(entry, axis)
+    define my.entry = is_applicable.entry
+    define my.axis = is_applicable.axis
+
+    define my.matches = 1
+
+    if (count(my.entry.field, this.group = my.axis.group, this) > 0)
+        my.matches = 0
+        return my.matches
+    endif
+
+    new groups as _groups
+        for my.axis.applicable as _applicable
+            if (count(_groups.entry, this.group = _applicable.group, this) = 0)
+                new _groups.entry as _entry
+                    _entry.group = _applicable.group
+                endnew
+            endif
+        endfor
+
+        for _groups.entry as _entry
+            if (!my.matches)
+                next
+            endif
+
+            define my.group_match = 0
+            define my.value = my.entry->field(this.group = _entry.group, this).value
+
+            for my.axis.applicable as _applicable where (_applicable.group = _entry.group)
+                if (my.group_match)
+                    next
+                endif
+
+                my.group_match = (my.value = _applicable.value)
+            endfor
+
+            my.matches = my.group_match
+        endfor
+        delete _groups
+    endnew
+
+    return !(my.matches = 0)
+endfunction
+
+.endtemplate
+.template 1
+.
+.##############################################################################
+.# Macros
+.##############################################################################
+.
+.endtemplate
+

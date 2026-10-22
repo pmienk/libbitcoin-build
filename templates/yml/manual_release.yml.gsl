@@ -1,0 +1,22 @@
+.template 0
+###############################################################################
+# Copyright (c) 2014-2026 libbitcoin developers (see COPYING).
+#
+# GSL generate libbitcoin <bitcoin ci.yml.
+#
+# This is a code generator built using the iMatix GSL code generation
+# language. See https://github.com/imatix/gsl for details.
+###############################################################################
+
+# Note: expected context root libbitcoin-build/process directory
+[gsl].ignorecase = 0
+
+gsl from "../templates/yml/build_workflow_base.yml.gsl"
+
+###############################################################################
+# Execution
+###############################################################################
+
+generate_build_yml(configuration, "$(script)")
+
+.endtemplate
