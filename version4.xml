@@ -2166,6 +2166,11 @@
       <entry value="macos" />
       <entry value="windows" />
     </axis>
+  
+    <axis group="deployment_target">
+      <applicable group="os" value="macos" />
+      <entry value="13.3" />
+    </axis>
 
     <axis group="optimizations">
       <applicable group="os" value="macos" />
@@ -2257,6 +2262,19 @@
       <entry value="glibc" />
       <entry value="musl" />
     </axis>
+
+    <!--
+    <axis group="libc">
+      <applicable group="os" value="macos" />
+      <entry value="libc" />
+    </axis>
+
+    <axis group="libc">
+      <applicable group="os" value="windows" />
+      <applicable group="toolchain" value="msbuild" />
+      <entry value="msvcrt" />
+    </axis>
+    -->
 
     <axis group="compiler">
       <applicable group="os" value="macos" />
@@ -2357,15 +2375,20 @@
       <entry value="static" />
     </axis>
 
+    <axis group="platform">
+      <entry value="arm64" />
+      <entry value="x64" />
+    </axis>
+
     <axis group="os">
       <entry value="linux" />
       <entry value="macos" />
       <entry value="windows" />
     </axis>
 
-    <axis group="platform">
-      <entry value="arm64" />
-      <entry value="x64" />
+    <axis group="deployment_target">
+      <applicable group="os" value="macos" />
+      <entry value="13.3" />
     </axis>
 
     <axis group="optimizations">
@@ -2451,6 +2474,19 @@
       <entry value="glibc" />
       <entry value="musl" />
     </axis>
+
+    <!--
+    <axis group="libc">
+      <applicable group="os" value="macos" />
+      <entry value="libc" />
+    </axis>
+
+     <axis group="libc">
+      <applicable group="os" value="windows" />
+      <applicable group="compiler" value="cl" />
+      <entry value="msvcrt" />
+    </axis>
+    -->
 
     <axis group="compiler">
       <applicable group="os" value="linux" />
@@ -3329,6 +3365,28 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
         <trigger value="workflow_dispatch" />
       </workflow>
     </template>
+
+    <!--
+    <template name="build.yml.gsl" path="yml" outpath=".github/workflows">
+      <workflow name="build">
+        <trigger value="workflow_call" />
+
+        <axis input="true" group="configuration" />
+        <axis input="true" group="linkage" />
+        <axis input="true" group="platform" />
+        <axis input="true" group="image" />
+        <axis input="true" group="compiler">
+          <input name="cc" source="property" />
+          <input name="cxx" />
+        </axis>
+        <axis input="true" group="toolchain" />
+        <axis input="true" group="libc" />
+        <input name="options" optional="true" />
+        <input name="linkflags" optional="true" />
+        <input name="toolset" optiona="true" />
+      </workflow>
+    </template>
+      -->
 
     <!-- vscode -->
     <template name="code-workspace.gsl" path="vscode" outpath="builds/vscode" />
