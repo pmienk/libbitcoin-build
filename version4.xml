@@ -2172,6 +2172,32 @@
       <entry value="13.3" />
     </axis>
 
+    <axis group="architecture">
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="arm64" />
+      <entry value="armv8-a" />
+      <entry value="armv8-a+crypto" />
+      <entry value="armv8.2-a+crypto+sha3" />
+    </axis>
+
+    <axis group="architecture">
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="x64" />
+      <entry value="x86-64-v3" />
+    </axis>
+
+    <axis group="architecture">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="arm64" />
+      <entry value="apple-m1" />
+    </axis>
+
+    <axis group="architecture">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="x64" />
+      <entry value="x86-64-v3" />
+    </axis>
+
     <axis group="optimizations">
       <applicable group="os" value="macos" />
       <applicable group="platform" value="arm64" />
@@ -2186,6 +2212,7 @@
 
     <axis group="optimizations">
       <applicable group="platform" value="arm64" />
+      <applicable group="architecture" value="armv8.2-a+crypto+sha3" />
       <entry value="sha3" />
     </axis>
 
@@ -2391,9 +2418,36 @@
       <entry value="13.3" />
     </axis>
 
+    <axis group="architecture">
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="arm64" />
+      <entry value="armv8-a" />
+      <entry value="armv8-a+crypto" />
+      <entry value="armv8.2-a+crypto+sha3" />
+    </axis>
+
+    <axis group="architecture">
+      <applicable group="os" value="linux" />
+      <applicable group="platform" value="x64" />
+      <entry value="x86-64-v3" />
+    </axis>
+
+    <axis group="architecture">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="arm64" />
+      <entry value="apple-m1" />
+    </axis>
+
+    <axis group="architecture">
+      <applicable group="os" value="macos" />
+      <applicable group="platform" value="x64" />
+      <entry value="x86-64-v3" />
+    </axis>
+
     <axis group="optimizations">
       <applicable group="os" value="macos" />
       <applicable group="platform" value="arm64" />
+      <applicable group="architecture" value="apple-m1" />
       <entry value="sha3" />
     </axis>
 
@@ -2405,8 +2459,13 @@
 
     <axis group="optimizations">
       <applicable group="platform" value="arm64" />
-      <entry value="none" />
+      <applicable group="architecture" value="armv8-a+crypto" />
       <entry value="sha" />
+    </axis>
+
+    <axis group="optimizations">
+      <applicable group="platform" value="arm64" />
+      <applicable group="architecture" value="armv8.2-a+crypto+sha3" />
       <entry value="sha3" />
     </axis>
 
