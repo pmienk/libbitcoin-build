@@ -63,6 +63,7 @@ jobs:
           CPPFLAGS="-I/opt/homebrew/include ${CPPFLAGS}" make --silent
           make install DESTDIR="${{ github.workspace }}/prefix"
           popd
+          ls -lah ${{ github.workspace }}/prefix
 
       - name: Aquire gsl [ubuntu]
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
@@ -71,6 +72,7 @@ jobs:
           make --silent
           make install DESTDIR="${{ github.workspace }}/prefix"
           popd
+          ls -lah ${{ github.workspace }}/prefix
 
       - name: Aquire gsl [windows]
         if: ${{ startsWith(matrix.os, 'windows') }}
