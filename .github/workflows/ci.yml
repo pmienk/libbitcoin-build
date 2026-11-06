@@ -63,7 +63,7 @@ jobs:
           CPPFLAGS="-I/opt/homebrew/include ${CPPFLAGS}" make --silent
           make install DESTDIR="${{ github.workspace }}/prefix"
           popd
-          ls -lah ${{ github.workspace }}/prefix
+          ls -lah ${{ github.workspace }}/prefix/usr
 
       - name: Aquire gsl [ubuntu]
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
@@ -72,7 +72,7 @@ jobs:
           make --silent
           make install DESTDIR="${{ github.workspace }}/prefix"
           popd
-          ls -lah ${{ github.workspace }}/prefix
+          ls -lah ${{ github.workspace }}/prefix/usr
 
       - name: Aquire gsl [windows]
         if: ${{ startsWith(matrix.os, 'windows') }}
@@ -140,7 +140,7 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}/libbitcoin-build
         run: >
-          PATH="${PATH} ${{github.workspace }}/prefix/bin" ./${{ matrix.script }}
+          PATH="${PATH} ${{github.workspace }}/prefix/usr/bin" ./${{ matrix.script }}
 
       - name: Execute generation [cmd]
         if: ${{ startsWith(matrix.shell, 'cmd') }}
