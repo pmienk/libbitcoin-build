@@ -21,17 +21,30 @@ function expand_axes(result, axes)
 
     for my.axes.axis as _axis where defined(_axis.group)
         if (count(my.result.encountered, this.group = _axis.group, this) = 0)
+            echo "Naieve axis expansion with '$(_axis.group)'"
             expand_axis(my.result, _axis.group, my.axes)
         endif
     endfor
 endfunction
+
+#function display_result(result)
+#    define my.result = display_result.result
+#    for my.result.entry as _entry
+#        echo "  entry:"
+#        for _entry.field as _field
+#            echo "    field: '$(_field.group)' '$(_field.value)'"
+#        endfor
+#    endfor
+#endfunction
 
 function expand_axis(result, group, axes)
     define my.result = expand_axis.result
     define my.group = expand_axis.group
     define my.axes = expand_axis.axes
 
-    #echo "Entry expand_axis group '$(my.group)'..."
+    echo "Entry expand_axis group '$(my.group)'..."
+
+#    display_result(my.result)
 
     if (count(my.result.encountered, this.group = my.group, this) > 0)
         abort("Encountered axis applicability cycle.")
@@ -40,17 +53,17 @@ function expand_axis(result, group, axes)
     for my.axes.axis as _axis where (_axis.group = my.group)
         for _axis.applicable as _applicable
             if (count(my.result.encountered, this.group = _applicable.group, this) = 0)
+                echo "Preempting with axis '$(_applicable.group)'"
                 expand_axis(my.result, _applicable.group, my.axes)
             endif
         endfor
     endfor
 
     if (count(my.result.encountered, this.group = my.group, this) > 0)
-        #echo "Aborting redundant expansion of '$(my.group)'..."
+        echo "Aborting redundant expansion of '$(my.group)'..."
         return
     endif
 
-    #echo "Applicability satisfied, expand_axis group '$(my.group)'..."
     define my.entry_count_initial = count(my.result.entry)
     define my.initial_populator = (count(my.result.entry) = 0)
 
@@ -67,6 +80,7 @@ function expand_axis(result, group, axes)
         endfor
     else
         for my.axes.axis as _axis where _axis.group = my.group
+            echo "Axis group: '$(_axis.group)'"
             new root as _original
                 for my.result.entry as _entry where is_applicable(_entry, _axis)
                     new _entry.field as _field
@@ -118,6 +132,16 @@ function is_applicable(entry, axis)
     define my.entry = is_applicable.entry
     define my.axis = is_applicable.axis
 
+#    echo "Entry:"
+#    for my.entry.field as _field
+#        echo "  field: '$(_field.group)' '$(_field.value)'"
+#    endfor
+
+#    echo "Axis: $(my.axis.group)"
+#    for my.axis.applicable as _app
+#        echo "  app: '$(_app.group)' '$(_app.value)'"
+#    endfor
+
     define my.matches = 1
 
     if (count(my.entry.field, this.group = my.axis.group, this) > 0)
@@ -140,6 +164,12 @@ function is_applicable(entry, axis)
             endif
 
             define my.group_match = 0
+
+            if !defined(my.entry->field(this.group = _entry.group, this))
+                my.matches = 0
+                next
+            endif
+
             define my.value = my.entry->field(this.group = _entry.group, this).value
 
             for my.axis.applicable as _applicable where (_applicable.group = _entry.group)

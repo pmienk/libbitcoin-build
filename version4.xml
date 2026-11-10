@@ -3425,27 +3425,25 @@ g and optimizations for size." hidden="false" display="*nix/GNU/Release/Static/S
       </workflow>
     </template>
 
-    <!--
     <template name="build.yml.gsl" path="yml" outpath=".github/workflows">
       <workflow name="build">
         <trigger value="workflow_call" />
 
-        <axis input="true" group="configuration" />
-        <axis input="true" group="linkage" />
-        <axis input="true" group="platform" />
-        <axis input="true" group="image" />
-        <axis input="true" group="compiler">
+        <axis group="configuration" />
+        <axis group="linkage" />
+        <axis group="platform" />
+        <axis group="image" />
+        <axis group="compiler">
           <input name="cc" source="property" />
           <input name="cxx" />
         </axis>
-        <axis input="true" group="toolchain" />
-        <axis input="true" group="libc" />
-        <input name="options" optional="true" />
+        <axis group="toolchain" />
+        <axis group="libc" />
+        <input name="installer-options" optional="true" />
+        <input name="compilerflags" optional="true" />
         <input name="linkflags" optional="true" />
-        <input name="toolset" optiona="true" />
       </workflow>
     </template>
-      -->
 
     <!-- vscode -->
     <template name="code-workspace.gsl" path="vscode" outpath="builds/vscode" />
